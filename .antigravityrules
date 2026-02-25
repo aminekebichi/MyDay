@@ -1,0 +1,478 @@
+# MyDay — .antigravityrules
+# Single source of truth for AI-assisted development on this project.
+# Read this file before writing any code, generating any component, or
+# making any architectural suggestion. Update it as decisions evolve.
+# Last updated: February 2026
+
+---
+
+## Project Overview
+
+MyDay is a unified daily and weekly planning dashboard for students and busy
+professionals. Users log tasks, meetings, assignments, deadlines, and events in
+one place. The app surfaces everything across three real-time-synced views: a
+scrollable weekly calendar strip, a weekly overview section, and a to-do
+checklist for today. A daily intro carousel greets returning users each morning.
+
+The core design philosophy: stay out of the user's way. Inputs are fast, layouts
+are scannable, and every change is reflected instantly everywhere.
+
+**PRD Reference:** `MyDay_PRD.md` in the project root — read this before
+implementing any feature. It contains the full item model, per-type field
+visibility rules, UX flows, and design system tokens.
+
+---
+
+## Tech Stack & Versions
+
+- **Framework:** Next.js 14.x (App Router) — full-stack in one repo
+- **Language:** TypeScript 5.x — strict mode, no `any` types ever
+- **Styling:** Tailwind CSS 3.x + CSS custom properties (variables) for theming
+- **UI Components:** shadcn/ui — headless, unstyled base; always customize to match design system
+- **State:** Zustand 4.x — one global store, one slice per feature domain
+- **Data fetching:** SWR 2.x — all server data fetched via SWR hooks; never fetch in components directly
+- **Database:** SQLite via Prisma ORM 5.x
+- **Animations:** Framer Motion 11.x — use for all meaningful transitions; no raw CSS keyframes for interactive motion
+- **Date handling:** date-fns 3.x only — never use `new Date()` arithmetic directly; always use date-fns helpers
+- **Validation:** Zod 3.x — all API request/response bodies validated with Zod schemas
+- **Auth:** Local session only — UUID token in localStorage, sent as `X-Session-Token` header
+
+---
+
+## Architecture Decisions
+
+- **Server Components by default.** Use `"use client"` only when a component needs interactivity (event handlers, hooks, animations). Never add `"use client"` preemptively.
+- **API routes live in `app/api/`.** All data mutations go through API routes — never write to the DB from a Server Component.
+- **All routes require auth.** Every API route must validate `X-Session-Token` at the top and return `401` if missing or invalid. Use the shared `validateSession(req)` helper — do not inline this logic.
+- **Optimistic updates are mandatory for all mutations.** Write to the Zustand store before the API call fires. Roll back on error and show an error toast.
+- **The Zustand store is the real-time sync layer.** All three home-screen views (calendar strip, overview, to-do list) subscribe to the same store slice. A mutation anywhere must propagate to all three instantly — this is a core product requirement, not a nice-to-have.
+- **Recurrence is expanded at read time, not write time.** Store only the base item + recurrence rule in the DB. Expand recurring instances into virtual items in the API `GET /api/items/week` route. Never write duplicate rows for recurring items.
+- **No external calendar integrations.** This is intentionally standalone. Do not suggest or add Google Calendar, Outlook, or any third-party calendar SDK.
+- **No third-party auth.** No NextAuth, no Clerk, no OAuth. Session is a UUID token only.
+
+---
+
+## File & Folder Structure
+
+```
+app/
+  (home)/               # Home screen route group
+    page.tsx            # Home screen — Server Component shell
+  api/
+    session/
+      route.ts          # POST + GET /api/session
+    items/
+      route.ts          # GET + POST /api/items
+      [id]/
+        route.ts        # PATCH + DELETE /api/items/:id
+      week/
+        route.ts        # GET /api/items/week
+components/
+  ui/                   # shadcn/ui base components (do not edit directly)
+  carousel/             # Intro carousel components
+  home/                 # Home screen section components
+  sheets/               # Bottom sheet modals (AddItemSheet, DayDetailSheet)
+  shared/               # Reusable across features (ItemRow, PriorityBadge, etc.)
+lib/
+  store.ts              # Zustand store — all slices defined here
+  session.ts            # validateSession() helper
+  db.ts                 # Prisma client singleton
+  recurrence.ts         # Recurrence expansion logic
+  overviewQuip.ts       # Weekly overview sentence generator (client-side, template-based)
+  fonts.ts              # next/font definitions for all three typefaces
+  schemas.ts            # All Zod schemas for API validation
+hooks/
+  useItems.ts           # SWR hook for item data
+  useWeekItems.ts       # SWR hook for full-week data
+  useSession.ts         # Session validation hook
+prisma/
+  schema.prisma
+```
+
+---
+
+## Naming Conventions & Coding Standards
+
+- **Components:** PascalCase, one component per file, filename matches component name
+- **Hooks:** camelCase prefixed with `use` (e.g., `useWeekItems`)
+- **API routes:** kebab-case folder names
+- **DB columns:** snake_case (handled by Prisma automatically)
+- **CSS variables:** kebab-case prefixed with `--` (e.g., `--bg-base`, `--text-muted`)
+- **Zustand slices:** one object per domain, co-located in `lib/store.ts` for MVP
+- **Enum values:** `SCREAMING_SNAKE_CASE` matching Prisma enums
+- **Type vs interface:** prefer `type` for data shapes; use `interface` only for class contracts
+- **No `any`:** strict TypeScript throughout — use `unknown` + type guards if needed
+- **No `// @ts-ignore`:** fix the type issue, never suppress it
+- **Issue references in code:** add a comment above any function implementing a GitHub Issue:
+  ```ts
+  // Implements #6: scrollable weekly calendar strip
+  ```
+
+---
+
+## Testing Strategy
+
+- **Framework:** Vitest + React Testing Library
+- **Test file location:** co-located with source files as `*.test.ts` / `*.test.tsx`
+- **Coverage goals:** 70% line coverage for `lib/` utilities; 50% for components
+- **Patterns to follow:**
+  - Unit test all `lib/` helpers (recurrence expansion, overviewQuip, session validation)
+  - Integration test API routes using `next-test-api-route-handler` or similar
+  - Component tests assert behavior, not implementation — click, render, assert
+  - Mock Prisma using `vitest` `vi.mock` or `jest-mock-extended`
+  - Never test internal state or private methods
+- **Accessibility in tests:** use `getByRole` and `getByLabelText` — not `getByTestId` — wherever possible
+- **Run commands:**
+  ```bash
+  npm run test          # Run once
+  npm run test:watch    # Watch mode
+  ```
+
+---
+
+## PRD & Mockup Design References
+
+### PRD
+The full PRD lives at `MyDay_PRD.md` in the project root. Key sections:
+
+- **Section 4.3** — Item Model (all fields + types)
+- **Section 4.4** — Per-type field visibility table for the Add/Edit sheet
+- **Section 5** — Full design system (color tokens, typography, motion specs)
+- **Section 6** — Prisma schema and all API route definitions
+- **Section 7** — UX flows for app open, adding items, and completing tasks
+
+### Mockup Designs
+Original hand-drawn mockups are in `docs/mockups/`. Key layouts:
+
+- **Home screen:** Scrollable calendar strip at top (today elevated, past days hatched/muted) → Overview quip in Caveat font → To-Do Today checklist → sticky "Add to MyDay" pill button fixed to bottom
+- **Daily Overview slide:** Full-screen logo (Instrument Serif), tagline in Caveat, task checklist with category + priority indicators, meeting contact card chip
+- **Week Ahead slide:** Calendar strip → one-sentence Caveat quip → prioritized list of upcoming items
+- **Add Item sheet:** Bottom sheet, type segmented control at top, context-sensitive fields below per visibility table
+
+### Key UI Components & Expected Behavior
+
+| Component | Location | Behavior |
+|---|---|---|
+| `CalendarStrip` | `components/home/` | Horizontal scroll, Mon–Sun, today elevated, past muted, "+N more" chip |
+| `TodoToday` | `components/home/` | Sorted by priority then time, checkbox with strike-through + translate animation |
+| `AddItemSheet` | `components/sheets/` | Slide-up from bottom, fields adapt to selected type per visibility table |
+| `DayDetailSheet` | `components/sheets/` | Opens on calendar day tap, shows all items for that day |
+| `ItemRow` | `components/shared/` | Category color left-border stripe, title, priority badge, checkbox |
+| `PriorityBadge` | `components/shared/` | Muted color label — Routine / Important / Critical |
+| `CarouselHeader` | `components/carousel/` | Full-screen logo, Caveat tagline, auto-advances after 1.5 s |
+| `DailyOverviewSlide` | `components/carousel/` | Today's tasks + next meeting card, scrollable |
+| `WeekAheadSlide` | `components/carousel/` | Calendar strip + Caveat quip + priority item list |
+
+### User Flows (for AI implementation guidance)
+
+**App open — returning user:**
+1. Check `localStorage` for `myday_session_token`
+2. Token found → `GET /api/session` to validate
+3. Check `user.lastOpenedAt` — if before 4:00 AM local time today → show Intro Carousel
+4. Carousel dismissed → `PATCH user.lastOpenedAt` → render home screen
+5. Token missing/invalid → render first-time onboarding tour
+
+**Adding an item:**
+1. User taps "Add to MyDay" sticky button
+2. `AddItemSheet` slides up (300 ms), title autofocused
+3. User fills fields; type selector controls field visibility per table
+4. Save → optimistic Zustand update → `POST /api/items` in background
+5. All three views update immediately; toast on success, rollback on error
+
+**Completing a task:**
+1. Checkbox tapped → strike-through animates left→right (200 ms)
+2. Item fades + translates to bottom of list (250 ms)
+3. `PATCH /api/items/:id` fires with `completedAt: new Date().toISOString()`
+4. Calendar strip day column count decrements; overview quip regenerates
+
+---
+
+## Item Model
+
+All items share one Prisma model. Field availability is enforced in the UI only.
+
+| Field | Type | Notes |
+|---|---|---|
+| `id` | `string` (UUID) | Auto-generated |
+| `userId` | `string` | FK to User |
+| `title` | `string` | Required |
+| `type` | `ItemType` enum | `TASK \| ASSIGNMENT \| EVENT \| MEETING \| DEADLINE` |
+| `priority` | `Priority` enum | `ROUTINE \| IMPORTANT \| CRITICAL` |
+| `date` | `DateTime` | Required |
+| `startTime` | `DateTime?` | Meeting + Event only |
+| `endTime` | `DateTime?` | Meeting + Event only |
+| `location` | `string?` | Meeting + Event only |
+| `joinUrl` | `string?` | Meeting only — plain URL, no SDK |
+| `attendeeName` | `string?` | Meeting only |
+| `recurrence` | `Recurrence` enum | `NONE \| DAILY \| WEEKLY \| MONTHLY` |
+| `recurrenceEndDate` | `DateTime?` | Optional |
+| `notes` | `string?` | All types |
+| `completedAt` | `DateTime?` | Null until checked off |
+| `createdAt` | `DateTime` | Auto-set |
+
+**Per-type field visibility in the Add/Edit sheet:**
+
+| Field | Task | Assignment | Event | Meeting | Deadline |
+|---|---|---|---|---|---|
+| Start / End Time | — | — | ✓ | ✓ | — |
+| Location | — | — | ✓ | ✓ | — |
+| Join URL | — | — | — | ✓ | — |
+| Attendee Name | — | — | — | ✓ | — |
+
+`joinUrl` renders as a tappable "Join" button: `window.open(joinUrl, '_blank')`.
+No validation beyond basic URL format. No Zoom SDK or any third-party meeting library.
+
+---
+
+## Design System
+
+### Theming
+
+Always use CSS custom properties — never hardcode hex values in component files.
+Tokens are defined in `globals.css` and toggled via `data-theme` on `<html>`.
+
+**Dark mode (default):**
+```css
+--bg-base:      #1E1E2E;
+--bg-surface:   #27273A;
+--bg-elevated:  #313145;
+--text-primary: #CDD6F4;
+--text-muted:   #7F849C;
+--accent:       #7C3AED;
+--border:       #45475A;
+```
+
+**Light mode (`data-theme="light"`):**
+```css
+--bg-base:      #FAFAF8;
+--bg-surface:   #F1F0EC;
+--bg-elevated:  #FFFFFF;
+--text-primary: #1E1E2E;
+--text-muted:   #6C6C80;
+--accent:       #5B21B6;
+--border:       #D9D7D0;
+```
+
+### Category Colors (muted — left-border stripe + faint bg tint)
+
+```ts
+export const CATEGORY_COLORS = {
+  TASK:       { dark: '#4A4A8A', light: '#6B6BAA' },
+  ASSIGNMENT: { dark: '#6A4A2A', light: '#8B6A4A' },
+  EVENT:      { dark: '#2A5A4A', light: '#3A7A6A' },
+  MEETING:    { dark: '#2A4A6A', light: '#3A6A8A' },
+  DEADLINE:   { dark: '#6A2A2A', light: '#8A4A4A' },
+} as const
+```
+
+Never use bright or fully saturated colors. The palette is intentionally muted.
+
+### Priority Colors (muted — left-accent indicator + badge)
+
+```ts
+export const PRIORITY_COLORS = {
+  ROUTINE:   { dark: '#7F849C', light: '#9090AA' },
+  IMPORTANT: { dark: '#A07A3A', light: '#B08040' },
+  CRITICAL:  { dark: '#8A3A3A', light: '#9A4040' },
+} as const
+```
+
+### Typography — Three Fonts, Three Roles
+
+Load all three via `next/font/google` in `lib/fonts.ts`.
+
+| Role | Font | Usage |
+|---|---|---|
+| Display / Headings | **Instrument Serif** | Logo, section headings, carousel slide titles |
+| Body / Data | **Geist Mono** (light) | Item labels, metadata, timestamps, all UI body text |
+| Personality | **Caveat** | Weekly overview quip, carousel tagline beneath logo, empty-state messages |
+
+**Caveat guidance:** warm, human-voice accent only.
+Good: overview quip, carousel subtitle, empty-state copy.
+Bad: item titles, form labels, button text, timestamps.
+
+### Motion
+
+- Carousel slides: horizontal spring, 400 ms, Framer Motion
+- Bottom sheet: slide-up from bottom, 300 ms ease-out, `AnimatePresence`
+- Task completion: strike-through left→right (200 ms) → fade + translate to bottom (250 ms)
+- Calendar scroll: native momentum, no custom easing
+- Theme toggle: 200 ms CSS transition on all color tokens
+- **Never block interaction with animation.** Motion is responsive, not decorative.
+
+---
+
+## Patterns & Conventions
+
+### TypeScript
+- Strict mode on. No `any`, no `// @ts-ignore`.
+- Zod schemas in `lib/schemas.ts` for all API bodies.
+- Export type-guard helpers: `isEvent(item)`, `isMeeting(item)`, etc.
+
+### React & Next.js
+- Server Components by default. `"use client"` only when truly needed.
+- Data via SWR hooks in `hooks/` — never fetch directly in components.
+- Prisma only in API routes — never in components or Server Components.
+- All forms: controlled inputs only, no uncontrolled refs.
+- Bottom sheets portaled via Framer Motion `AnimatePresence`.
+
+### State Management
+- Zustand store holds: `items[]`, `sessionUser`, `theme`, `isCarouselDismissed`.
+- Every mutation: optimistic store update → API call → rollback on error.
+- Overview quip is a derived value from `items[]` — never stored separately.
+
+### API Routes
+- Validate `X-Session-Token` first via `validateSession(req)` from `lib/session.ts`.
+- Consistent error shape: `{ error: string, code: string }`.
+- Zod-parse all request bodies; return `400` on failure.
+- Prisma only — no raw SQL ever.
+
+### Session & Carousel Gate
+- Token key in localStorage: `myday_session_token`
+- Carousel fires when: session valid AND `user.lastOpenedAt` before 4:00 AM local today
+- After dismissal: `PATCH user.lastOpenedAt` before home screen renders
+- No token → onboarding tour (not carousel)
+
+---
+
+## Accessibility Requirements
+
+These are non-negotiable. Every component must meet them.
+
+- **Minimum tap target size:** 44 × 44 px for all interactive elements (WCAG 2.5.5)
+- **Color contrast:** all text must meet WCAG AA (4.5:1 normal text, 3:1 large text). Never use color alone to convey meaning — always pair with a label or icon.
+- **Keyboard navigation:** all interactive elements reachable and operable via keyboard. Use native `<button>` and `<a>` — never `<div onClick>`.
+- **Focus management:** when a sheet opens, move focus to first focusable element inside. When it closes, return focus to the trigger.
+- **ARIA labels:** icon-only buttons must have `aria-label`. Carousel must have `role="region"` and `aria-label`. Progress dots must have `aria-label="Slide N of M"`.
+- **Semantic HTML:** use `<nav>`, `<main>`, `<section>`, `<ul>/<li>`, `<time>`. No structural `<div>` substitutes.
+- **Reduced motion:** wrap all Framer Motion animations in a `prefers-reduced-motion` check:
+  ```ts
+  const prefersReducedMotion = window.matchMedia(
+    '(prefers-reduced-motion: reduce)'
+  ).matches
+  ```
+- **Test selectors:** use `getByRole` / `getByLabelText` — not `getByTestId`.
+
+---
+
+## Do's and Don'ts
+
+### Do
+- Use `var(--token-name)` for all colors
+- Use `date-fns` for all date arithmetic
+- Use Zod schemas for all API validation
+- Use `isEvent(item)` / `isMeeting(item)` type guards in components
+- Use `getByRole` / `getByLabelText` in tests
+- Use `AnimatePresence` for sheet enter/exit
+- Use `onAnimationComplete` for post-animation logic
+- Use native `<button>` and `<a>` for all interactive elements
+- Add `aria-label` to all icon-only buttons
+- Wrap animations in `prefers-reduced-motion` check
+- Reference the GitHub Issue number in every commit and above every implementing function
+
+### Don't
+- Hardcode hex values in component files
+- Add `"use client"` to `page.tsx` or `layout.tsx`
+- Write recurring item rows to the DB
+- Use `new Date()` arithmetic
+- Suggest third-party integrations (Google Calendar, Zoom SDK, Outlook, etc.)
+- Add auth beyond local session (no NextAuth, no Clerk, no OAuth)
+- Skip optimistic updates on any mutation
+- Apply Caveat font to labels, navigation, or body text
+- Fetch user-specific data inside Server Components
+- Use `setTimeout` for animation timing — use `onAnimationComplete`
+- Use `<div onClick>` instead of `<button>`
+- Use `getByTestId` when a role selector is available
+
+---
+
+## Out of Scope (Do Not Implement)
+
+Explicitly excluded from MVP. Do not add stubs or placeholders.
+
+- External calendar sync (Google Calendar, Apple Calendar, Outlook)
+- Push notifications or browser reminders
+- Multi-device sync (requires PostgreSQL + cloud hosting migration)
+- Shared or collaborative calendars
+- AI-generated overview text (use template-based `lib/overviewQuip.ts`)
+- File attachments on items
+- OAuth or any third-party authentication
+
+---
+
+## Scrum & GitHub Workflow
+
+### Branch Naming
+- Features:  `feature/[issue-number]-[short-description]`  e.g. `feature/6-calendar-strip`
+- Bug fixes: `fix/[issue-number]-[short-description]`      e.g. `fix/14-token-not-updating`
+- Chores:    `chore/[issue-number]-[short-description]`    e.g. `chore/1-nextjs-scaffold`
+- Always branch off `main`. Never branch off another feature branch.
+
+### Commit Message Format
+```
+Verb description (#issue-number)
+```
+- Present-tense imperative: "Add", "Fix", "Refactor", "Remove" — not "Added"
+- Subject line under 72 characters
+- Reference the GitHub Issue number in every commit
+- Examples:
+  - `Add scrollable calendar strip component (#6)`
+  - `Fix optimistic rollback on item delete (#8)`
+  - `Refactor Zustand store slice for items (#5)`
+
+### Pull Request Workflow
+- PR title: `[Issue title] (#issue-number)`
+- PR body must include:
+  - `Closes #[issue-number]` to auto-close on merge
+  - Brief summary of what changed and why
+  - Screenshots for any UI changes
+- Self-review checklist before requesting review:
+  - [ ] `npm run dev` runs without errors
+  - [ ] `npm run lint` passes clean
+  - [ ] `npm run test` passes
+  - [ ] No hardcoded hex values introduced
+  - [ ] No `any` types introduced
+  - [ ] Optimistic updates implemented for any mutations
+  - [ ] Accessible: tap targets ≥44px, keyboard navigable, ARIA labels present
+  - [ ] Responsive at 375 px and 768 px
+- Move the GitHub Issue to **In Review** when the PR is opened
+- Move to **Done** only after merge to `main`
+- Commit rules file changes in their own PR so convention changes are explicitly reviewed
+
+### Referencing Issues in Code
+```ts
+// Implements #6: scrollable weekly calendar strip
+export function CalendarStrip() { ... }
+
+// TODO(#12): add Zod validation to this route
+```
+
+### AI Workflow Instructions
+When implementing a feature, always:
+1. Confirm which GitHub Issue this maps to before writing any code
+2. Follow the folder structure above exactly
+3. Name the branch per the convention before generating any files
+4. Reference the relevant PRD section before generating components
+5. Check the Per-Type Field Visibility table before generating any form or item component
+6. Never implement anything in the Out of Scope section
+
+---
+
+## Build & Dev Commands
+
+```bash
+npm run dev                          # Start dev server (localhost:3000)
+npm run build                        # Production build
+npm run lint                         # ESLint
+npm run test                         # Vitest (run once)
+npm run test:watch                   # Vitest (watch mode)
+npx prisma migrate dev --name <n>    # Create and apply a DB migration
+npx prisma studio                    # Open Prisma DB browser
+npx prisma generate                  # Regenerate Prisma client after schema changes
+```
+
+---
+
+*This file is a living document. Update it whenever a new architectural decision
+is made, a new pattern is established, or a pitfall is discovered. Both the PRD
+and this rules file must stay in sync.*
