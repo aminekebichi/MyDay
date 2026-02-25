@@ -77,5 +77,5 @@ Every interaction — adding a task, marking something complete, or logging a ne
 
 | Name | GitHub |
 |---|---|
-| Amine Kebichi | [@Amine Kebichi](https://github.com/Amine-Kebichi) |
-| Nicholas Annunziata | [@Nicholas Annunziata](https://github.com/Nicholas-Annunziata) |
+| Amine Kebichi | [@aminekebichi](https://github.com/aminekebichi) |
+| Nicholas Annunziata | [@nca0716](https://github.com/nca0716) |
