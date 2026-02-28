@@ -8,3 +8,6 @@ next-env.d.ts
 prisma/schema.prisma
 test-api.js
 tsc
+tsconfig.tsbuildinfo
+tsconfig.json
+.env
