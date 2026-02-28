@@ -1,5 +1,5 @@
 ---
-trigger: manual
+trigger: always_on
 ---
 
 # MyDay — Coding Standards, Patterns & Testing
