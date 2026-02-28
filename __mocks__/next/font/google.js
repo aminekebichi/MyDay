@@ -1,0 +1,3 @@
+export const Instrument_Serif = () => ({ style: { fontFamily: "mock-instrument" }, className: "mock-instrument", variable: "--font-instrument" });
+export const Geist_Mono = () => ({ style: { fontFamily: "mock-geist-mono" }, className: "mock-geist", variable: "--font-geist-mono" });
+export const Caveat = () => ({ style: { fontFamily: "mock-caveat" }, className: "mock-caveat", variable: "--font-caveat" });

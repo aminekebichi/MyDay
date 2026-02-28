@@ -1,0 +1,57 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --bg-base:      #1E1E2E;
+    --bg-surface:   #27273A;
+    --bg-elevated:  #313145;
+    --text-primary: #CDD6F4;
+    --text-muted:   #7F849C;
+    --accent:       #7C3AED;
+    --border:       #45475A;
+  }
+
+  [data-theme="light"] {
+    --bg-base:      #FAFAF8;
+    --bg-surface:   #F1F0EC;
+    --bg-elevated:  #FFFFFF;
+    --text-primary: #1E1E2E;
+    --text-muted:   #6C6C80;
+    --accent:       #5B21B6;
+    --border:       #D9D7D0;
+  }
+}
+
+body {
+  background-color: var(--bg-base);
+  color: var(--text-primary);
+  font-family: var(--font-geist-mono);
+}
+
+.hatch-pattern {
+  background-image: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 4px,
+    rgba(127, 132, 156, 0.1) 4px,
+    rgba(127, 132, 156, 0.1) 8px
+  );
+}
+
+[data-theme="light"] .hatch-pattern {
+  background-image: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 4px,
+    rgba(108, 108, 128, 0.1) 4px,
+    rgba(108, 108, 128, 0.1) 8px
+  );
+}
+
+* {
+  transition: background-color 200ms ease, border-color 200ms ease;
+  min-height: 0; 
+  min-width: 0;
+}

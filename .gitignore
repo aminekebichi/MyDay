@@ -1,1 +1,13 @@
 .DS_Store
+node_modules
+package-lock.json
+package.json
+.next
+__mocks__
+next-env.d.ts
+prisma/schema.prisma
+prisma/seed.js
+tsconfig.json
+tsconfig.tsbuildinfo
+vitest.config.ts
+vitest.setup.ts
