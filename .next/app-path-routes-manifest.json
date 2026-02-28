@@ -3,5 +3,6 @@
   "/_not-found/page": "/_not-found",
   "/api/items/[id]/route": "/api/items/[id]",
   "/api/items/route": "/api/items",
-  "/api/items/week/route": "/api/items/week"
+  "/api/items/week/route": "/api/items/week",
+  "/page": "/"
 }
