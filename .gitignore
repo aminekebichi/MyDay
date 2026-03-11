@@ -1,13 +1,25 @@
+# Dependencies
+node_modules/
+
+# Next.js build output
+.next/
+out/
+
+# Database
+prisma/*.db
+prisma/*.db-journal
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# TypeScript incremental build cache
+*.tsbuildinfo
+
+# Test coverage
+coverage/
+
+# OS artifacts
 .DS_Store
-node_modules
-package-lock.json
-package.json
-.next/*
-__mocks__
-next-env.d.ts
-prisma/schema.prisma
-prisma/seed.js
-tsconfig.json
-tsconfig.tsbuildinfo
-vitest.config.ts
-vitest.setup.ts
+Thumbs.db

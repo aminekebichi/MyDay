@@ -52,6 +52,14 @@ body {
 
 * {
   transition: background-color 200ms ease, border-color 200ms ease;
-  min-height: 0; 
+  min-height: 0;
   min-width: 0;
+}
+
+.font-instrument {
+  font-family: var(--font-instrument), serif;
+}
+
+.font-caveat {
+  font-family: var(--font-caveat), cursive;
 }
