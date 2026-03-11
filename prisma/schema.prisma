@@ -1,0 +1,38 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./myday.db"
+}
+
+model User {
+  id            String    @id @default(uuid())
+  displayName   String
+  sessionToken  String    @unique
+  theme         String    @default("dark")
+  lastOpenedAt  DateTime?
+  createdAt     DateTime  @default(now())
+  items         Item[]
+}
+
+model Item {
+  id                String     @id @default(uuid())
+  userId            String
+  user              User       @relation(fields: [userId], references: [id])
+  title             String
+  type              String     // TASK, ASSIGNMENT, EVENT, MEETING, DEADLINE
+  priority          String     // ROUTINE, IMPORTANT, CRITICAL
+  date              DateTime
+  startTime         DateTime?
+  endTime           DateTime?
+  recurrence        String     @default("NONE") // NONE, DAILY, WEEKLY, MONTHLY
+  recurrenceEndDate DateTime?
+  notes             String?
+  attendeeName      String?
+  joinUrl           String?
+  location          String?
+  completedAt       DateTime?
+  createdAt         DateTime   @default(now())
+}
