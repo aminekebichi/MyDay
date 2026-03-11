@@ -2,7 +2,7 @@
 node_modules
 package-lock.json
 package.json
-.next
+.next/*
 __mocks__
 next-env.d.ts
 prisma/schema.prisma
