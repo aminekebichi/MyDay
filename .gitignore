@@ -4,22 +4,45 @@ node_modules/
 # Next.js build output
 .next/
 out/
+.turbo/
 
 # Database
 prisma/*.db
 prisma/*.db-journal
+prisma/*.db-shm
+prisma/*.db-wal
 
 # Environment variables
 .env
 .env.local
 .env.*.local
+.env.production
 
 # TypeScript incremental build cache
 *.tsbuildinfo
+next-env.d.ts
 
 # Test coverage
 coverage/
+.nyc_output/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Editor / IDE
+.vscode/
+.idea/
+*.swp
+*.swo
 
 # OS artifacts
 .DS_Store
 Thumbs.db
+desktop.ini
+
+# Vercel / deployment
+.vercel/
