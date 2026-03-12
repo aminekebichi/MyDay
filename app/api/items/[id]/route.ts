@@ -1,12 +1,12 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '../../../../lib/db';
-import { validateSession } from '../../../../lib/session';
-import { UpdateItemSchema } from '../../../../lib/schemas';
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "../../../../lib/db";
+import { validateSession } from "../../../../lib/session";
+import { UpdateItemSchema } from "../../../../lib/schemas";
 
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
     const user = await validateSession(req);
     if (!user) {
-        return NextResponse.json({ error: 'Unauthorized', code: 'UNAUTHORIZED' }, { status: 401 });
+        return NextResponse.json({ error: "Unauthorized", code: "UNAUTHORIZED" }, { status: 401 });
     }
 
     try {
@@ -14,68 +14,63 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
         const result = UpdateItemSchema.safeParse(body);
 
         if (!result.success) {
-            return NextResponse.json({ error: 'Invalid payload', code: 'VALIDATION_ERROR', details: result.error.flatten() }, { status: 400 });
+            return NextResponse.json({ error: "Invalid payload", code: "VALIDATION_ERROR", details: result.error.flatten() }, { status: 400 });
         }
 
-        const { id } = params;
+        const id = params.id;
+        const item = await prisma.item.findUnique({ where: { id } });
 
-        const existing = await prisma.item.findUnique({ where: { id } });
-        if (!existing) {
-            return NextResponse.json({ error: 'Item not found', code: 'NOT_FOUND' }, { status: 404 });
+        if (!item) {
+            return NextResponse.json({ error: "Item not found", code: "NOT_FOUND" }, { status: 404 });
         }
 
-        // Allow if user is owner OR user is an ADMIN
-        if (existing.userId !== user.id && user.role !== 'ADMIN') {
-            return NextResponse.json({ error: 'Unauthorized', code: 'UNAUTHORIZED' }, { status: 401 });
+        // Authorization: Owner or Admin
+        if (item.userId !== user.id && user.role !== 'ADMIN') {
+            return NextResponse.json({ error: "Forbidden", code: "FORBIDDEN" }, { status: 403 });
         }
-
-        const {
-            startTime, endTime, recurrenceEndDate, completedAt, date, ...rest
-        } = result.data as any;
-
-        const updateData: any = { ...rest };
-        if (date) updateData.date = new Date(date);
-        if (startTime !== undefined) updateData.startTime = startTime ? new Date(startTime) : null;
-        if (endTime !== undefined) updateData.endTime = endTime ? new Date(endTime) : null;
-        if (recurrenceEndDate !== undefined) updateData.recurrenceEndDate = recurrenceEndDate ? new Date(recurrenceEndDate) : null;
-        if (completedAt !== undefined) updateData.completedAt = completedAt ? new Date(completedAt) : null;
 
         const updatedItem = await prisma.item.update({
             where: { id },
-            data: updateData
+            data: {
+                ...result.data,
+                date: result.data.date ? new Date(result.data.date) : undefined,
+                startTime: result.data.startTime ? new Date(result.data.startTime) : (result.data.startTime === null ? null : undefined),
+                endTime: result.data.endTime ? new Date(result.data.endTime) : (result.data.endTime === null ? null : undefined),
+                recurrenceEndDate: result.data.recurrenceEndDate ? new Date(result.data.recurrenceEndDate) : (result.data.recurrenceEndDate === null ? null : undefined),
+                completedAt: result.data.completedAt ? new Date(result.data.completedAt) : (result.data.completedAt === null ? null : undefined),
+            },
         });
 
         return NextResponse.json(updatedItem);
     } catch (error) {
         console.error("PATCH /api/items/[id] error:", error);
-        return NextResponse.json({ error: 'Internal Server Error', code: 'INTERNAL_ERROR' }, { status: 500 });
+        return NextResponse.json({ error: "Internal Server Error", code: "INTERNAL_ERROR" }, { status: 500 });
     }
 }
 
 export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
     const user = await validateSession(req);
     if (!user) {
-        return NextResponse.json({ error: 'Unauthorized', code: 'UNAUTHORIZED' }, { status: 401 });
+        return NextResponse.json({ error: "Unauthorized", code: "UNAUTHORIZED" }, { status: 401 });
     }
 
     try {
-        const { id } = params;
+        const id = params.id;
+        const item = await prisma.item.findUnique({ where: { id } });
 
-        const existing = await prisma.item.findUnique({ where: { id } });
-        if (!existing) {
-            return NextResponse.json({ error: 'Item not found', code: 'NOT_FOUND' }, { status: 404 });
+        if (!item) {
+            return NextResponse.json({ error: "Item not found", code: "NOT_FOUND" }, { status: 404 });
         }
 
-        // Allow if user is owner OR user is an ADMIN
-        if (existing.userId !== user.id && user.role !== 'ADMIN') {
-            return NextResponse.json({ error: 'Unauthorized', code: 'UNAUTHORIZED' }, { status: 401 });
+        // Authorization: Owner or Admin
+        if (item.userId !== user.id && user.role !== 'ADMIN') {
+            return NextResponse.json({ error: "Forbidden", code: "FORBIDDEN" }, { status: 403 });
         }
 
         await prisma.item.delete({ where: { id } });
-
-        return NextResponse.json({ success: true });
+        return new NextResponse(null, { status: 204 });
     } catch (error) {
         console.error("DELETE /api/items/[id] error:", error);
-        return NextResponse.json({ error: 'Internal Server Error', code: 'INTERNAL_ERROR' }, { status: 500 });
+        return NextResponse.json({ error: "Internal Server Error", code: "INTERNAL_ERROR" }, { status: 500 });
     }
 }

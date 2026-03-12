@@ -1,20 +1,17 @@
 "use client";
 
 import { useMemo } from 'react';
-import { format, isSameDay, isToday, startOfDay } from 'date-fns';
+import { isSameDay, startOfDay, isToday, format } from 'date-fns';
 import { useStore } from '../../lib/store';
 import { PRIORITY_ORDER } from '../../lib/constants';
 import { ItemRow } from '../shared/ItemRow';
 
-// To avoid TS errors until Prisma client is generated
 type Item = any;
 
 export function TodoToday() {
-    const items = useStore((state: any) => state.items);
-    const updateItem = useStore((state: any) => state.updateItem);
-    const setEditingItem = useStore((state: any) => state.setEditingItem);
-    const selectedDate = useStore((state: any) => state.selectedDate);
-    const token = useStore((state: any) => state.token);
+    const items = useStore((state) => state.items);
+    const setEditingItem = useStore((state) => state.setEditingItem);
+    const selectedDate = useStore((state) => state.selectedDate);
 
     const activeDate = startOfDay(selectedDate ?? new Date());
 
@@ -22,11 +19,9 @@ export function TodoToday() {
         return items
             .filter((item: Item) => isSameDay(new Date(item.date), activeDate))
             .sort((a: Item, b: Item) => {
-                // By priority
                 const pA = PRIORITY_ORDER[a.priority as keyof typeof PRIORITY_ORDER] ?? 99;
                 const pB = PRIORITY_ORDER[b.priority as keyof typeof PRIORITY_ORDER] ?? 99;
                 if (pA !== pB) return pA - pB;
-                // Then by start time
                 const tA = a.startTime ? new Date(a.startTime).getTime() : Number.MAX_SAFE_INTEGER;
                 const tB = b.startTime ? new Date(b.startTime).getTime() : Number.MAX_SAFE_INTEGER;
                 return tA - tB;
@@ -34,37 +29,10 @@ export function TodoToday() {
     }, [items, activeDate]);
 
     const completedCount = todayItems.filter((item: Item) => !!item.completedAt).length;
-
-    // Implements #9: complete/uncomplete a task with optimistic update + rollback
-    const handleToggle = async (id: string, completedAt: string | null) => {
-        // Store the previous value for potential rollback
-        const previous = items.find((item: Item) => item.id === id)?.completedAt ?? null;
-
-        // Optimistic update
-        updateItem(id, { completedAt });
-
-        try {
-            const res = await fetch(`/api/items/${id}`, {
-                method: 'PATCH',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Session-Token': token || '',
-                },
-                body: JSON.stringify({ completedAt }),
-            });
-
-            if (!res.ok) throw new Error('Failed to update item');
-        } catch {
-            // Rollback
-            updateItem(id, { completedAt: previous });
-        }
-    };
-
     const headingLabel = isToday(activeDate) ? 'Today' : format(activeDate, 'EEEE, MMM d');
 
     return (
         <section aria-label={`Tasks for ${headingLabel}`}>
-            {/* Section header */}
             <div className="px-4 pt-5 pb-3 flex items-baseline justify-between">
                 <h2 className="text-lg font-instrument" style={{ color: 'var(--text-primary)' }}>
                     {headingLabel}
@@ -83,10 +51,10 @@ export function TodoToday() {
                     </p>
                 </div>
             ) : (
-                <ul>
+                <ul className="space-y-2 px-4">
                     {todayItems.map((item: Item) => (
-                        <li key={item.id}>
-                            <ItemRow item={item} onToggle={handleToggle} onEdit={setEditingItem} />
+                        <li key={item.id} onClick={() => setEditingItem(item)} className="cursor-pointer">
+                            <ItemRow item={item} />
                         </li>
                     ))}
                 </ul>

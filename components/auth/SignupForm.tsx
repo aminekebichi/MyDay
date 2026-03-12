@@ -2,20 +2,23 @@
 
 import { useState } from "react";
 import { useStore } from "../../lib/store";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
+import { Label } from "../ui/label";
 
-export function SignupForm({ onToggleLogin }: { onToggleLogin: () => void }) {
+export function SignupForm() {
     const [username, setUsername] = useState("");
     const [displayName, setDisplayName] = useState("");
     const [password, setPassword] = useState("");
     const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState("");
+    const [error, setError] = useState<string | null>(null);
     
     const login = useStore((state) => state.login);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsLoading(true);
-        setError("");
+        setError(null);
 
         try {
             const res = await fetch("/api/auth/signup", {
@@ -27,110 +30,80 @@ export function SignupForm({ onToggleLogin }: { onToggleLogin: () => void }) {
             const data = await res.json();
 
             if (!res.ok) {
-                setError(data.error || "Signup failed");
-            } else {
-                login(data.user, data.token);
+                throw new Error(data.error || "Signup failed");
             }
-        } catch (err) {
-            setError("Something went wrong. Please try again.");
+
+            login(data.user, data.token);
+        } catch (err: any) {
+            setError(err.message);
         } finally {
             setIsLoading(false);
         }
     };
 
     return (
-        <div className="flex flex-col items-center justify-center min-h-screen px-4 py-12" style={{ backgroundColor: "var(--bg-base)" }}>
-            <div 
-                className="w-full max-w-md p-8 rounded-2xl border shadow-xl" 
-                style={{ backgroundColor: "var(--bg-surface)", borderColor: "var(--border)" }}
-            >
-                <div className="mb-8 text-center">
-                    <h1 className="text-4xl font-instrument mb-2" style={{ color: "var(--text-primary)" }}>MyDay</h1>
-                    <p className="font-caveat text-xl" style={{ color: "var(--text-muted)" }}>Create your account</p>
-                </div>
-
-                <form onSubmit={handleSubmit} className="space-y-6">
-                    <div>
-                        <label className="block text-xs uppercase tracking-widest mb-2 font-geist" style={{ color: "var(--text-muted)" }}>
-                            Display Name
-                        </label>
-                        <input
-                            type="text"
-                            value={displayName}
-                            onChange={(e) => setDisplayName(e.target.value)}
-                            required
-                            className="w-full px-4 py-3 rounded-xl border focus:outline-none focus:ring-2 transition-all font-geist"
-                            style={{ 
-                                backgroundColor: "var(--bg-elevated)", 
-                                color: "var(--text-primary)",
-                                borderColor: "var(--border)"
-                            }}
-                            placeholder="John Doe"
-                        />
-                    </div>
-
-                    <div>
-                        <label className="block text-xs uppercase tracking-widest mb-2 font-geist" style={{ color: "var(--text-muted)" }}>
-                            Username
-                        </label>
-                        <input
-                            type="text"
-                            value={username}
-                            onChange={(e) => setUsername(e.target.value)}
-                            required
-                            className="w-full px-4 py-3 rounded-xl border focus:outline-none focus:ring-2 transition-all font-geist"
-                            style={{ 
-                                backgroundColor: "var(--bg-elevated)", 
-                                color: "var(--text-primary)",
-                                borderColor: "var(--border)"
-                            }}
-                            placeholder="username"
-                        />
-                    </div>
-
-                    <div>
-                        <label className="block text-xs uppercase tracking-widest mb-2 font-geist" style={{ color: "var(--text-muted)" }}>
-                            Password
-                        </label>
-                        <input
-                            type="password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            required
-                            className="w-full px-4 py-3 rounded-xl border focus:outline-none focus:ring-2 transition-all font-geist"
-                            style={{ 
-                                backgroundColor: "var(--bg-elevated)", 
-                                color: "var(--text-primary)",
-                                borderColor: "var(--border)"
-                            }}
-                            placeholder="••••••••"
-                        />
-                    </div>
-
-                    {error && (
-                        <p className="text-red-500 text-sm font-geist text-center">{error}</p>
-                    )}
-
-                    <button
-                        type="submit"
-                        disabled={isLoading}
-                        className="w-full py-4 rounded-xl font-geist font-bold text-white transition-all transform active:scale-95 disabled:opacity-50"
-                        style={{ backgroundColor: "var(--accent)" }}
-                    >
-                        {isLoading ? "Creating account..." : "Sign Up"}
-                    </button>
-                </form>
-
-                <div className="mt-8 text-center pt-6 border-t" style={{ borderColor: "var(--border)" }}>
-                    <button 
-                        onClick={onToggleLogin}
-                        className="text-sm font-geist hover:underline" 
-                        style={{ color: "var(--text-muted)" }}
-                    >
-                        Already have an account? Sign in
-                    </button>
-                </div>
+        <div className="flex flex-col gap-6 w-full max-w-sm p-8 rounded-xl border bg-surface" style={{ borderColor: 'var(--border)', backgroundColor: 'var(--bg-surface)' }}>
+            <div className="flex flex-col gap-2">
+                <h1 className="text-3xl font-serif text-primary" style={{ borderBottom: '2px solid var(--accent)', paddingBottom: '0.5rem' }}>Create Account</h1>
+                <p className="text-sm font-geist text-muted">Join MyDay to start organizing your schedule.</p>
             </div>
+            
+            <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+                <div className="flex flex-col gap-2">
+                    <Label htmlFor="displayName" style={{ color: 'var(--text-primary)' }}>Display Name</Label>
+                    <Input
+                        id="displayName"
+                        type="text"
+                        placeholder="John Doe"
+                        value={displayName}
+                        onChange={(e) => setDisplayName(e.target.value)}
+                        required
+                        className="bg-base border-border"
+                        style={{ backgroundColor: 'var(--bg-base)', color: 'var(--text-primary)' }}
+                    />
+                </div>
+                <div className="flex flex-col gap-2">
+                    <Label htmlFor="username" style={{ color: 'var(--text-primary)' }}>Username</Label>
+                    <Input
+                        id="username"
+                        type="text"
+                        placeholder="johndoe"
+                        value={username}
+                        onChange={(e) => setUsername(e.target.value)}
+                        required
+                        className="bg-base border-border"
+                        style={{ backgroundColor: 'var(--bg-base)', color: 'var(--text-primary)' }}
+                    />
+                </div>
+                <div className="flex flex-col gap-2">
+                    <Label htmlFor="password" style={{ color: 'var(--text-primary)' }}>Password</Label>
+                    <Input
+                        id="password"
+                        type="password"
+                        placeholder="••••••••"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        required
+                        className="bg-base border-border"
+                        style={{ backgroundColor: 'var(--bg-base)', color: 'var(--text-primary)' }}
+                    />
+                </div>
+
+                {error && (
+                    <div className="p-3 text-xs rounded bg-red-500/10 border border-red-500/20 text-red-400 font-geist">
+                        {error}
+                    </div>
+                )}
+
+                <Button 
+                    type="submit" 
+                    disabled={isLoading}
+                    className="w-full mt-2"
+                    style={{ backgroundColor: 'var(--accent)', color: 'white' }}
+                >
+                    {isLoading ? "Creating account..." : "Sign Up"}
+                </Button>
+            </form>
         </div>
     );
 }

@@ -1,16 +1,17 @@
 "use client";
 
-import { CalendarStrip } from './CalendarStrip';
-import { TodoToday } from './TodoToday';
-import { OverviewSection } from './OverviewSection';
-import { Clock } from './Clock';
-import { AddItemSheet } from '../sheets/AddItemSheet';
-import { AddButton } from './AddButton';
-import { useStore } from '../../lib/store';
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from "react";
+import { useStore } from "../../lib/store";
+import { CalendarStrip } from "./CalendarStrip";
+import { TodoToday } from "./TodoToday";
+import { DayDetailSheet } from "../sheets/DayDetailSheet";
+import { AddItemSheet } from "../sheets/AddItemSheet";
+import { useWeekItems } from "../../hooks/useWeekItems";
+import { LogOut, Users, ChevronDown } from "lucide-react";
 
 export function Dashboard() {
     const sessionUser = useStore((state) => state.sessionUser);
+    const token = useStore((state) => state.token);
     const logout = useStore((state) => state.logout);
     const viewedUserId = useStore((state) => state.viewedUserId);
     const setViewedUserId = useStore((state) => state.setViewedUserId);
@@ -18,17 +19,21 @@ export function Dashboard() {
     const [users, setUsers] = useState<any[]>([]);
     const [showUserMenu, setShowUserMenu] = useState(false);
 
+    // Fetch weekly items to populate the store
+    useWeekItems(new Date());
+
     useEffect(() => {
-        if (sessionUser?.role === 'ADMIN') {
-            fetch('/api/users', {
-                headers: { 'X-Session-Token': useStore.getState().token || '' }
+        if (sessionUser?.role === 'ADMIN' && token) {
+            fetch("/api/users", {
+                headers: { 'X-Session-Token': token }
             })
-            .then(res => res.json())
-            .then(data => {
-                if (Array.isArray(data)) setUsers(data);
-            });
+                .then(res => res.json())
+                .then(data => {
+                    if (Array.isArray(data)) setUsers(data);
+                })
+                .catch(err => console.error("Failed to fetch users:", err));
         }
-    }, [sessionUser]);
+    }, [sessionUser, token]);
 
     const viewedUser = viewedUserId === 'all' 
         ? { displayName: 'All Users', id: 'all' } 
@@ -36,39 +41,32 @@ export function Dashboard() {
 
     return (
         <main className="min-h-screen" style={{ backgroundColor: 'var(--bg-base)' }}>
-            <div className="w-full min-h-screen flex flex-col relative">
-                <header
-                    className="px-4 py-3 border-b flex-none flex items-center justify-between"
-                    style={{
-                        backgroundColor: 'var(--bg-surface)',
-                        borderColor: 'var(--border)',
-                    }}
-                >
+            <header className="sticky top-0 z-10 w-full border-b bg-surface px-4 py-3" style={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--border)' }}>
+                <div className="flex items-center justify-between mx-auto max-w-lg">
+                    <div className="flex flex-col">
+                        <h1 className="text-xl font-serif text-primary" style={{ color: 'var(--text-primary)' }}>MyDay</h1>
+                        <p className="text-[10px] font-caveat text-muted" style={{ color: 'var(--text-muted)' }}>your day, unified.</p>
+                    </div>
+
                     <div className="flex items-center gap-3">
-                        <h1
-                            className="text-xl font-instrument"
-                            style={{ color: 'var(--text-primary)' }}
-                        >
-                            MyDay
-                        </h1>
                         {sessionUser?.role === 'ADMIN' && (
                             <div className="relative">
                                 <button 
                                     onClick={() => setShowUserMenu(!showUserMenu)}
-                                    className="p-1.5 rounded-lg border transition-all"
-                                    style={{ borderColor: 'var(--border)', backgroundColor: 'var(--bg-elevated)' }}
-                                    title="Switch User View"
+                                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border bg-base text-xs font-geist"
+                                    style={{ backgroundColor: 'var(--bg-base)', borderColor: 'var(--border)', color: 'var(--text-primary)' }}
                                 >
-                                    <span className="text-xs font-geist px-1" style={{ color: 'var(--text-muted)' }}>
-                                        Viewing: {viewedUser?.displayName || '...'}
-                                    </span>
+                                    <Users size={14} className="text-accent" style={{ color: 'var(--accent)' }} />
+                                    <span>{viewedUser?.displayName || 'Loading...'}</span>
+                                    <ChevronDown size={12} className="opacity-50" />
                                 </button>
+
                                 {showUserMenu && (
                                     <div 
-                                        className="absolute top-full left-0 mt-2 w-48 rounded-xl border shadow-2xl z-50 overflow-hidden"
-                                        style={{ backgroundColor: 'var(--bg-elevated)', borderColor: 'var(--border)' }}
+                                        className="absolute right-0 mt-2 w-56 rounded-lg border shadow-xl z-50 overflow-hidden bg-surface"
+                                        style={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--border)' }}
                                     >
-                                        <div className="p-2 border-b" style={{ borderColor: 'var(--border)' }}>
+                                        <div className="px-4 py-2 border-b bg-base bg-opacity-50" style={{ borderColor: 'var(--border)' }}>
                                             <p className="text-[10px] uppercase tracking-tighter font-geist" style={{ color: 'var(--text-muted)' }}>Select Calendar</p>
                                         </div>
                                         <div className="max-h-60 overflow-y-auto">
@@ -93,13 +91,14 @@ export function Dashboard() {
                                                         setViewedUserId(u.id);
                                                         setShowUserMenu(false);
                                                     }}
-                                                    className="w-full text-left px-4 py-3 text-sm font-geist hover:bg-opacity-10"
+                                                    className="w-full text-left px-4 py-3 text-sm font-geist hover:bg-opacity-10 transition-colors"
                                                     style={{ 
                                                         color: viewedUserId === u.id ? 'var(--accent)' : 'var(--text-primary)',
-                                                        backgroundColor: viewedUserId === u.id ? 'var(--bg-surface)' : 'transparent'
+                                                        backgroundColor: viewedUserId === u.id ? 'var(--bg-surface)' : 'transparent',
+                                                        borderBottom: '1px solid var(--border)'
                                                     }}
                                                 >
-                                                    {u.displayName} {u.id === sessionUser.id && '(Me)'}
+                                                    {u.displayName} {u.id === sessionUser.id && "(You)"}
                                                 </button>
                                             ))}
                                         </div>
@@ -107,46 +106,26 @@ export function Dashboard() {
                                 )}
                             </div>
                         )}
-                    </div>
-                    
-                    <div className="flex items-center gap-4">
-                        <Clock />
+                        
                         <button 
                             onClick={logout}
-                            className="p-2 rounded-full hover:bg-opacity-10 transition-all"
+                            className="p-2 rounded-full hover:bg-opacity-10 transition-colors"
                             style={{ color: 'var(--text-muted)' }}
-                            title="Sign Out"
+                            title="Log Out"
                         >
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9" />
-                            </svg>
+                            <LogOut size={18} />
                         </button>
                     </div>
-                </header>
+                </div>
+            </header>
 
-                <section
-                    className="flex-none border-b"
-                    style={{ borderColor: 'var(--border)' }}
-                    aria-label="Weekly calendar"
-                >
-                    <CalendarStrip />
-                </section>
-
-                <section
-                    className="flex-none border-b"
-                    style={{ borderColor: 'var(--border)' }}
-                    aria-label="Weekly overview"
-                >
-                    <OverviewSection />
-                </section>
-
-                <section className="flex-1 pb-32">
-                    <TodoToday />
-                </section>
+            <div className="mx-auto max-w-lg pb-24">
+                <CalendarStrip />
+                <TodoToday />
             </div>
 
-            <AddButton />
             <AddItemSheet />
+            <DayDetailSheet />
         </main>
     );
 }
