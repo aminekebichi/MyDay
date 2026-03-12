@@ -14,6 +14,7 @@ export function TodoToday() {
     const updateItem = useStore((state: any) => state.updateItem);
     const setEditingItem = useStore((state: any) => state.setEditingItem);
     const selectedDate = useStore((state: any) => state.selectedDate);
+    const token = useStore((state: any) => state.token);
 
     const activeDate = startOfDay(selectedDate ?? new Date());
 
@@ -47,7 +48,7 @@ export function TodoToday() {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-Session-Token': 'usr_test_123',
+                    'X-Session-Token': token || '',
                 },
                 body: JSON.stringify({ completedAt }),
             });

@@ -21,38 +21,65 @@ async function main() {
     await prisma.user.deleteMany();
 
     // ── User ──────────────────────────────────────────────────────────────────
-    console.log('Creating user...');
-    const user = await prisma.user.create({
+    console.log('Creating users...');
+    const admin = await prisma.user.create({
         data: {
-            id: 'usr_test_123',
-            displayName: 'Amine',
-            sessionToken: 'usr_test_123',
+            id: 'admin_123',
+            displayName: 'Administrator',
+            username: 'admin',
+            passwordHash: '$2b$10$631QaaXdrX4ewsy6vnCC7.o1v/EzrHEjc6iyx9RVDLorqshnFprJe', // "admin"
+            role: 'ADMIN',
             theme: 'dark',
             lastOpenedAt: new Date(),
         },
     });
 
-    // Date anchors — all relative to today so the seed stays fresh
-    // Today is assumed to be Thursday (Sprint 2 wrap-up day)
-    const today   = startOfDay(new Date()); // Thu — Sprint 2 demo day
-    const fri     = addDays(today, 1);      // Fri — Retro + Sprint 2 close
-    const mon     = addDays(today, 4);      // Mon — Sprint 3 planning
-    const tue     = addDays(today, 5);      // Tue — CRUD API + 1:1
-    const wed     = addDays(today, 6);      // Wed — Mid-sprint check-in
-    const thu     = addDays(today, 7);      // Thu — Recurrence + typography
-    const fri2    = addDays(today, 8);      // Fri — QA pass + final PR deadline
-    const mon2    = addDays(today, 11);     // Mon — Sprint 4 planning
-    const tue2    = addDays(today, 12);     // Tue — Sprint 4 dev
-    const wed2    = addDays(today, 13);     // Wed — Sprint 4 mid-sprint
-    const thu2    = addDays(today, 14);     // Thu — Sprint 4 dev
-    const fri3    = addDays(today, 15);     // Fri — Sprint 4 close
+    const user = await prisma.user.create({
+        data: {
+            id: 'usr_test_123',
+            displayName: 'Amine',
+            username: 'amine',
+            passwordHash: '$2b$10$631QaaXdrX4ewsy6vnCC7.o1v/EzrHEjc6iyx9RVDLorqshnFprJe', // "admin" (simple password for test user too)
+            role: 'USER',
+            theme: 'dark',
+            lastOpenedAt: new Date(),
+        },
+    });
 
-    console.log('Seeding sprint items...');
+    const user3 = await prisma.user.create({
+        data: {
+            id: 'usr_sarah_123',
+            displayName: 'Sarah',
+            username: 'sarah',
+            passwordHash: '$2b$10$kpBfd01EdKl8Joj1fDWEwe8cK0pKaVKGtPknddo2W8g.8yDYxmOTu', // "sarah"
+            role: 'USER',
+            theme: 'dark',
+            lastOpenedAt: new Date(),
+        },
+    });
+
+    const user4 = await prisma.user.create({
+        data: {
+            id: 'usr_bob_123',
+            displayName: 'Bob',
+            username: 'bob',
+            passwordHash: '$2b$10$qhA.TRHZXjy0au1nKbwIpuSeucDrkh1sZj8pXjYpbIuakknCGI7DW', // "bob"
+            role: 'USER',
+            theme: 'light',
+            lastOpenedAt: new Date(),
+        },
+    });
+
+    // Date anchors — all relative to today so the seed stays fresh
+    const today   = startOfDay(new Date());
+    const tomorrow = addDays(today, 1);
+    const nextWeek = addDays(today, 7);
+
+    console.log('Seeding items for all users...');
+    
+    // Items for Amine (Existing sprint data)
     await prisma.item.createMany({
         data: [
-
-            // ── THURSDAY (today) — Sprint 2 demo & wrap-up ───────────────────
-
             {
                 userId: user.id,
                 title: 'Sprint 2 Demo & Review',
@@ -62,437 +89,88 @@ async function main() {
                 startTime: at(today, 14),
                 endTime: at(today, 15, 30),
                 attendeeName: 'Full Team',
-                notes: 'Demo: calendar strip (#6), Todo list (#7), Add Item sheet (#8). Acceptance criteria sign-off.',
+                notes: 'Demo: calendar strip (#6), Todo list (#7), Add Item sheet (#8).',
             },
             {
                 userId: user.id,
-                title: 'Merge calendar strip PR — closes #6',
-                type: 'TASK',
-                priority: 'CRITICAL',
-                date: today,
-                notes: 'Final review pass, resolve merge conflicts, push to main before the 2pm demo.',
-            },
-            {
-                userId: user.id,
-                title: 'Merge Todo list PR — closes #7',
+                title: 'Finish API Documentation',
                 type: 'TASK',
                 priority: 'IMPORTANT',
-                date: today,
-                notes: 'Verify optimistic toggle + rollback in staging before demo.',
-            },
-            {
-                userId: user.id,
-                title: 'Merge Add Item sheet PR — closes #8',
-                type: 'TASK',
-                priority: 'IMPORTANT',
-                date: today,
-                notes: 'Confirm per-type field visibility logic works end-to-end.',
-            },
-            {
-                userId: user.id,
-                title: 'Update GitHub issue tracker for Sprint 2 close',
-                type: 'TASK',
-                priority: 'ROUTINE',
-                date: today,
-                notes: 'Close #5, #6, #7, #8. Add "done" label. Update project board.',
-            },
-
-            // ── FRIDAY — Sprint 2 retrospective ──────────────────────────────
-
-            {
-                userId: user.id,
-                title: 'Sprint 2 Retrospective',
-                type: 'MEETING',
-                priority: 'IMPORTANT',
-                date: fri,
-                startTime: at(fri, 10),
-                endTime: at(fri, 11),
-                attendeeName: 'Full Team',
-                notes: 'What went well, what didn\'t, action items for Sprint 3.',
-            },
-            {
-                userId: user.id,
-                title: 'Write Sprint 2 summary & velocity doc',
-                type: 'ASSIGNMENT',
-                priority: 'ROUTINE',
-                date: fri,
-                notes: 'Document burn-down, completed issues, carry-overs, and sprint screenshots.',
-            },
-
-            // ── MONDAY — Sprint 3 kick-off ────────────────────────────────────
-
-            {
-                userId: user.id,
-                title: 'Sprint 3 Planning',
-                type: 'MEETING',
-                priority: 'CRITICAL',
-                date: mon,
-                startTime: at(mon, 9),
-                endTime: at(mon, 11),
-                attendeeName: 'Full Team',
-                notes: 'Scope: #11 carousel, #12 CRUD API, #13 recurrence, #14 typography, #15 mobile QA. Story point estimation.',
-            },
-            {
-                userId: user.id,
-                title: 'Daily standup',
-                type: 'MEETING',
-                priority: 'ROUTINE',
-                date: mon,
-                startTime: at(mon, 9, 30),
-                endTime: at(mon, 9, 45),
-                attendeeName: 'Full Team',
-            },
-            {
-                userId: user.id,
-                title: 'Scaffold CRUD API routes — #12',
-                type: 'TASK',
-                priority: 'IMPORTANT',
-                date: mon,
-                notes: 'Scaffold GET/POST /api/items and PATCH/DELETE /api/items/[id]. Wire validateSession() from lib/session.ts.',
-            },
-
-            // ── TUESDAY ──────────────────────────────────────────────────────
-
-            {
-                userId: user.id,
-                title: 'Daily standup',
-                type: 'MEETING',
-                priority: 'ROUTINE',
-                date: tue,
-                startTime: at(tue, 9, 30),
-                endTime: at(tue, 9, 45),
-                attendeeName: 'Full Team',
-            },
-            {
-                userId: user.id,
-                title: 'Implement CRUD API routes — closes #12',
-                type: 'ASSIGNMENT',
-                priority: 'CRITICAL',
-                date: tue,
-                notes: 'Full GET, POST, PATCH, DELETE with Zod validation and session auth. Unit + integration tests required.',
-            },
-            {
-                userId: user.id,
-                title: '1:1 with Tech Lead',
-                type: 'MEETING',
-                priority: 'IMPORTANT',
-                date: tue,
-                startTime: at(tue, 15),
-                endTime: at(tue, 15, 30),
-                attendeeName: 'Tech Lead',
-                notes: 'Discuss architecture for recurrence expansion (#13) and carousel session gate logic (#11).',
-            },
-
-            // ── WEDNESDAY — mid-sprint check-in ──────────────────────────────
-
-            {
-                userId: user.id,
-                title: 'Daily standup',
-                type: 'MEETING',
-                priority: 'ROUTINE',
-                date: wed,
-                startTime: at(wed, 9, 30),
-                endTime: at(wed, 9, 45),
-                attendeeName: 'Full Team',
-            },
-            {
-                userId: user.id,
-                title: 'Sprint 3 mid-sprint check-in — #11 & #12 must be merged',
-                type: 'DEADLINE',
-                priority: 'CRITICAL',
-                date: wed,
-                notes: 'Carousel (#11) and CRUD API (#12) PRs merged to main by EOD Wednesday.',
-            },
-            {
-                userId: user.id,
-                title: 'Build daily intro carousel — closes #11',
-                type: 'ASSIGNMENT',
-                priority: 'CRITICAL',
-                date: wed,
-                notes: '3-slide flow: Welcome, Feature Tour, Profile Setup. Gate: no token → onboarding; stale lastOpenedAt → carousel.',
-            },
-            {
-                userId: user.id,
-                title: 'Write integration tests for CRUD API routes',
-                type: 'TASK',
-                priority: 'IMPORTANT',
-                date: wed,
-                notes: 'Use real SQLite test DB — no mocks. Cover auth failures, Zod validation errors, and 404s.',
-            },
-
-            // ── THURSDAY (next week) ──────────────────────────────────────────
-
-            {
-                userId: user.id,
-                title: 'Daily standup',
-                type: 'MEETING',
-                priority: 'ROUTINE',
-                date: thu,
-                startTime: at(thu, 9, 30),
-                endTime: at(thu, 9, 45),
-                attendeeName: 'Full Team',
-            },
-            {
-                userId: user.id,
-                title: 'Implement recurrence expansion at read time — closes #13',
-                type: 'ASSIGNMENT',
-                priority: 'IMPORTANT',
-                date: thu,
-                notes: 'Expand in GET /api/items/week only. Support DAILY, WEEKLY, MONTHLY. No duplicate rows written to DB.',
-            },
-            {
-                userId: user.id,
-                title: 'Apply typography system — closes #14',
-                type: 'TASK',
-                priority: 'IMPORTANT',
-                date: thu,
-                notes: 'Instrument Serif → headings/logo, Geist Mono → body/labels, Caveat → personality copy only.',
-            },
-
-            // ── FRIDAY (next week) — Sprint 3 close ──────────────────────────
-
-            {
-                userId: user.id,
-                title: 'Daily standup',
-                type: 'MEETING',
-                priority: 'ROUTINE',
-                date: fri2,
-                startTime: at(fri2, 9, 30),
-                endTime: at(fri2, 9, 45),
-                attendeeName: 'Full Team',
-            },
-            {
-                userId: user.id,
-                title: 'Mobile responsive QA pass — closes #15',
-                type: 'ASSIGNMENT',
-                priority: 'IMPORTANT',
-                date: fri2,
-                notes: 'Test at 375px (iPhone SE) and 768px (iPad). Cover calendar strip, add dialog, todo list, CTA button.',
-            },
-            {
-                userId: user.id,
-                title: 'Sprint 3 final PR deadline — all issues merged',
-                type: 'DEADLINE',
-                priority: 'CRITICAL',
-                date: fri2,
-                notes: '#11, #12, #13, #14, #15 — all PRs merged to main by EOD Friday.',
-            },
-            {
-                userId: user.id,
-                title: 'Sprint 3 Demo prep',
-                type: 'TASK',
-                priority: 'IMPORTANT',
-                date: fri2,
-                notes: 'Prepare demo script and screenshots for next sprint review.',
-            },
-            {
-                userId: user.id,
-                title: 'Team Lunch',
-                type: 'EVENT',
-                priority: 'ROUTINE',
-                date: fri2,
-                startTime: at(fri2, 12),
-                endTime: at(fri2, 13, 30),
-                location: 'The Canteen',
-                attendeeName: 'Full Team',
-            },
-
-            // ── MONDAY (Sprint 4 kick-off, Mar 23) ───────────────────────────
-
-            {
-                userId: user.id,
-                title: 'Sprint 4 Planning',
-                type: 'MEETING',
-                priority: 'CRITICAL',
-                date: mon2,
-                startTime: at(mon2, 9),
-                endTime: at(mon2, 11),
-                attendeeName: 'Full Team',
-                notes: 'Scope: light/dark theme toggle (#10), onboarding tour (#4), session API hardening (#3). Point estimation.',
-            },
-            {
-                userId: user.id,
-                title: 'Daily standup',
-                type: 'MEETING',
-                priority: 'ROUTINE',
-                date: mon2,
-                startTime: at(mon2, 9, 30),
-                endTime: at(mon2, 9, 45),
-                attendeeName: 'Full Team',
-            },
-            {
-                userId: user.id,
-                title: 'Implement light/dark theme toggle — closes #10',
-                type: 'ASSIGNMENT',
-                priority: 'IMPORTANT',
-                date: mon2,
-                notes: 'Persist preference to localStorage. Toggle on <html data-theme="...">. Confirm all CSS tokens update correctly.',
-            },
-            {
-                userId: user.id,
-                title: 'Design review: onboarding tour mocks',
-                type: 'MEETING',
-                priority: 'IMPORTANT',
-                date: mon2,
-                startTime: at(mon2, 14),
-                endTime: at(mon2, 14, 45),
-                attendeeName: 'Design Lead',
-                notes: 'Review 3-step onboarding flow wireframes before implementation begins (#4).',
-            },
-
-            // ── TUESDAY (Sprint 4) ────────────────────────────────────────────
-
-            {
-                userId: user.id,
-                title: 'Daily standup',
-                type: 'MEETING',
-                priority: 'ROUTINE',
-                date: tue2,
-                startTime: at(tue2, 9, 30),
-                endTime: at(tue2, 9, 45),
-                attendeeName: 'Full Team',
-            },
-            {
-                userId: user.id,
-                title: 'Build first-time onboarding tour — closes #4',
-                type: 'ASSIGNMENT',
-                priority: 'CRITICAL',
-                date: tue2,
-                notes: '3-step: Welcome → Feature Tour → Profile Setup. Only shown when no session token exists.',
-            },
-            {
-                userId: user.id,
-                title: 'Harden session API — closes #3',
-                type: 'TASK',
-                priority: 'IMPORTANT',
-                date: tue2,
-                notes: 'Validate UUID format, add rate limiting, ensure token rotation on re-auth.',
-            },
-
-            // ── WEDNESDAY — mid-sprint check-in ──────────────────────────────
-
-            {
-                userId: user.id,
-                title: 'Daily standup',
-                type: 'MEETING',
-                priority: 'ROUTINE',
-                date: wed2,
-                startTime: at(wed2, 9, 30),
-                endTime: at(wed2, 9, 45),
-                attendeeName: 'Full Team',
-            },
-            {
-                userId: user.id,
-                title: 'Sprint 4 mid-sprint check-in — theme + onboarding merged',
-                type: 'DEADLINE',
-                priority: 'CRITICAL',
-                date: wed2,
-                notes: 'Theme toggle (#10) and onboarding tour (#4) PRs must be merged by EOD Wednesday.',
-            },
-            {
-                userId: user.id,
-                title: 'Write onboarding tour tests',
-                type: 'TASK',
-                priority: 'IMPORTANT',
-                date: wed2,
-                notes: 'Test session gate logic, carousel navigation, and profile setup submission.',
-            },
-            {
-                userId: user.id,
-                title: 'Accessibility audit — WCAG 2.5.5 tap targets',
-                type: 'ASSIGNMENT',
-                priority: 'IMPORTANT',
-                date: wed2,
-                notes: 'Verify all interactive elements meet 44×44px minimum. Fix any violations.',
-            },
-
-            // ── THURSDAY ─────────────────────────────────────────────────────
-
-            {
-                userId: user.id,
-                title: 'Daily standup',
-                type: 'MEETING',
-                priority: 'ROUTINE',
-                date: thu2,
-                startTime: at(thu2, 9, 30),
-                endTime: at(thu2, 9, 45),
-                attendeeName: 'Full Team',
-            },
-            {
-                userId: user.id,
-                title: '1:1 with Tech Lead',
-                type: 'MEETING',
-                priority: 'IMPORTANT',
-                date: thu2,
-                startTime: at(thu2, 15),
-                endTime: at(thu2, 15, 30),
-                attendeeName: 'Tech Lead',
-                notes: 'Review Sprint 4 progress, discuss SWR caching strategy and Zustand session slice.',
-            },
-            {
-                userId: user.id,
-                title: 'SWR cache invalidation review',
-                type: 'TASK',
-                priority: 'IMPORTANT',
-                date: thu2,
-                notes: 'Ensure item mutations correctly invalidate useWeekItems and useItems SWR keys.',
-            },
-            {
-                userId: user.id,
-                title: 'End-to-end smoke test on staging',
-                type: 'TASK',
-                priority: 'ROUTINE',
-                date: thu2,
-                notes: 'Full flow: onboarding → carousel → home → add item → complete item → edit item.',
-            },
-
-            // ── FRIDAY (Sprint 4 close) ───────────────────────────────────────
-
-            {
-                userId: user.id,
-                title: 'Daily standup',
-                type: 'MEETING',
-                priority: 'ROUTINE',
-                date: fri3,
-                startTime: at(fri3, 9, 30),
-                endTime: at(fri3, 9, 45),
-                attendeeName: 'Full Team',
-            },
-            {
-                userId: user.id,
-                title: 'Sprint 4 final PR deadline — all issues merged',
-                type: 'DEADLINE',
-                priority: 'CRITICAL',
-                date: fri3,
-                notes: '#3, #4, #10 PRs merged to main by EOD Friday.',
-            },
-            {
-                userId: user.id,
-                title: 'Sprint 4 Demo & Review',
-                type: 'MEETING',
-                priority: 'CRITICAL',
-                date: fri3,
-                startTime: at(fri3, 14),
-                endTime: at(fri3, 15, 30),
-                attendeeName: 'Full Team',
-                notes: 'Demo: theme toggle (#10), onboarding tour (#4), session hardening (#3).',
-            },
-            {
-                userId: user.id,
-                title: 'Sprint 4 Retrospective',
-                type: 'MEETING',
-                priority: 'IMPORTANT',
-                date: fri3,
-                startTime: at(fri3, 16),
-                endTime: at(fri3, 17),
-                attendeeName: 'Full Team',
-                notes: 'Retro + plan for final polish sprint.',
-            },
-        ],
+                date: addDays(today, 2),
+            }
+        ]
     });
 
+    // Items for Sarah
+    await prisma.item.createMany({
+        data: [
+            {
+                userId: user3.id,
+                title: 'Biology 101 Final Exam',
+                type: 'DEADLINE',
+                priority: 'CRITICAL',
+                date: addDays(today, 5),
+                notes: 'Review chapters 1-12. Bring Scantron.',
+            },
+            {
+                userId: user3.id,
+                title: 'Study Group Meeting',
+                type: 'MEETING',
+                priority: 'IMPORTANT',
+                date: addDays(today, 1),
+                startTime: at(addDays(today, 1), 16),
+                endTime: at(addDays(today, 1), 18),
+                location: 'Library Room 4',
+                attendeeName: 'Biology Group',
+            },
+            {
+                userId: user3.id,
+                title: 'Grocery Shopping',
+                type: 'TASK',
+                priority: 'ROUTINE',
+                date: today,
+            }
+        ]
+    });
+
+    // Items for Bob
+    await prisma.item.createMany({
+        data: [
+            {
+                userId: user4.id,
+                title: 'Client Project Kickoff',
+                type: 'MEETING',
+                priority: 'CRITICAL',
+                date: addDays(today, 1),
+                startTime: at(addDays(today, 1), 9),
+                endTime: at(addDays(today, 1), 10, 30),
+                attendeeName: 'Acme Corp',
+                joinUrl: 'https://zoom.us/j/123456789',
+            },
+            {
+                userId: user4.id,
+                title: 'Morning Yoga',
+                type: 'EVENT',
+                priority: 'ROUTINE',
+                date: today,
+                startTime: at(today, 7),
+                endTime: at(today, 8),
+                recurrence: 'DAILY',
+            },
+            {
+                userId: user4.id,
+                title: 'Fix Production Bug #402',
+                type: 'TASK',
+                priority: 'CRITICAL',
+                date: today,
+                notes: 'Memory leak in the worker process.',
+            }
+        ]
+    });
+
+
     const count = await prisma.item.count();
-    console.log(`✓ Seeded ${count} items for "${user.displayName}" (token: ${user.sessionToken})`);
+    console.log(`✓ Seeded ${count} items for user: ${user.username} with role ${user.role} and admin: ${admin.username} with role ${admin.role}`);
 }
 
 main()

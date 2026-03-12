@@ -1,64 +1,31 @@
-import { CalendarStrip } from '../../components/home/CalendarStrip';
-import { TodoToday } from '../../components/home/TodoToday';
-import { OverviewSection } from '../../components/home/OverviewSection';
-import { Clock } from '../../components/home/Clock';
-import { AddItemSheet } from '../../components/sheets/AddItemSheet';
-import { AddButton } from '../../components/home/AddButton';
+"use client";
+
+import { useState, useEffect } from "react";
+import { useStore } from "../../lib/store";
+import { LoginForm } from "../../components/auth/LoginForm";
+import { SignupForm } from "../../components/auth/SignupForm";
+import { Dashboard } from "../../components/home/Dashboard";
 
 export default function Home() {
-    return (
-        <main className="min-h-screen" style={{ backgroundColor: 'var(--bg-base)' }}>
-            {/* Full-width container — expands to fill the viewport at all screen sizes */}
-            <div className="w-full min-h-screen flex flex-col relative">
-                {/* App header */}
-                <header
-                    className="px-4 py-3 border-b flex-none flex items-center justify-between"
-                    style={{
-                        backgroundColor: 'var(--bg-surface)',
-                        borderColor: 'var(--border)',
-                    }}
-                >
-                    <h1
-                        className="text-xl font-instrument"
-                        style={{ color: 'var(--text-primary)' }}
-                    >
-                        MyDay
-                    </h1>
-                    <Clock />
-                </header>
+    const sessionUser = useStore((state) => state.sessionUser);
+    const token = useStore((state) => state.token);
+    const [authMode, setAuthMode] = useState<"login" | "signup">("login");
+    const [isMounted, setIsMounted] = useState(false);
 
-                {/* ── SECTION 1: Scrollable carousel calendar ───────────────────────
-                    Implemented in CalendarStrip. Expands to fill its natural height. */}
-                <section
-                    className="flex-none border-b"
-                    style={{ borderColor: 'var(--border)' }}
-                    aria-label="Weekly calendar"
-                >
-                    <CalendarStrip />
-                </section>
+    // Ensure we only render content after mounting to avoid hydration mismatch with localStorage
+    useEffect(() => {
+        setIsMounted(true);
+    }, []);
 
-                {/* ── SECTION 2: Weekly overview ──────────────────────────────────── */}
-                <section
-                    className="flex-none border-b"
-                    style={{ borderColor: 'var(--border)' }}
-                    aria-label="Weekly overview"
-                >
-                    <OverviewSection />
-                </section>
+    if (!isMounted) return null;
 
-                {/* ── SECTION 3: To-Do Today ────────────────────────────────────────
-                    Grows to fill remaining vertical space so the page scrolls naturally.
-                    Extra bottom padding keeps content clear of the sticky CTA button. */}
-                <section className="flex-1 pb-32">
-                    <TodoToday />
-                </section>
-            </div>
+    if (!sessionUser || !token) {
+        return authMode === "login" ? (
+            <LoginForm onToggleSignup={() => setAuthMode("signup")} />
+        ) : (
+            <SignupForm onToggleLogin={() => setAuthMode("login")} />
+        );
+    }
 
-            {/* Sticky "Add to MyDay" CTA — fixed to the bottom, spans full viewport width */}
-            <AddButton />
-
-            {/* Add Item bottom sheet — rendered at root level (above everything) */}
-            <AddItemSheet />
-        </main>
-    );
+    return <Dashboard />;
 }
