@@ -21,11 +21,7 @@ export function TodoToday() {
         return items
             .filter((item: Item) => isSameDay(new Date(item.date), activeDate))
             .sort((a: Item, b: Item) => {
-                // Completed items go to the bottom
-                if (!!a.completedAt !== !!b.completedAt) {
-                    return a.completedAt ? 1 : -1;
-                }
-                // Then by priority
+                // By priority
                 const pA = PRIORITY_ORDER[a.priority as keyof typeof PRIORITY_ORDER] ?? 99;
                 const pB = PRIORITY_ORDER[b.priority as keyof typeof PRIORITY_ORDER] ?? 99;
                 if (pA !== pB) return pA - pB;

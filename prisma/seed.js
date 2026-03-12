@@ -41,6 +41,11 @@ async function main() {
     const wed     = addDays(today, 6);      // Wed — Mid-sprint check-in
     const thu     = addDays(today, 7);      // Thu — Recurrence + typography
     const fri2    = addDays(today, 8);      // Fri — QA pass + final PR deadline
+    const mon2    = addDays(today, 11);     // Mon — Sprint 4 planning
+    const tue2    = addDays(today, 12);     // Tue — Sprint 4 dev
+    const wed2    = addDays(today, 13);     // Wed — Sprint 4 mid-sprint
+    const thu2    = addDays(today, 14);     // Thu — Sprint 4 dev
+    const fri3    = addDays(today, 15);     // Fri — Sprint 4 close
 
     console.log('Seeding sprint items...');
     await prisma.item.createMany({
@@ -290,6 +295,198 @@ async function main() {
                 endTime: at(fri2, 13, 30),
                 location: 'The Canteen',
                 attendeeName: 'Full Team',
+            },
+
+            // ── MONDAY (Sprint 4 kick-off, Mar 23) ───────────────────────────
+
+            {
+                userId: user.id,
+                title: 'Sprint 4 Planning',
+                type: 'MEETING',
+                priority: 'CRITICAL',
+                date: mon2,
+                startTime: at(mon2, 9),
+                endTime: at(mon2, 11),
+                attendeeName: 'Full Team',
+                notes: 'Scope: light/dark theme toggle (#10), onboarding tour (#4), session API hardening (#3). Point estimation.',
+            },
+            {
+                userId: user.id,
+                title: 'Daily standup',
+                type: 'MEETING',
+                priority: 'ROUTINE',
+                date: mon2,
+                startTime: at(mon2, 9, 30),
+                endTime: at(mon2, 9, 45),
+                attendeeName: 'Full Team',
+            },
+            {
+                userId: user.id,
+                title: 'Implement light/dark theme toggle — closes #10',
+                type: 'ASSIGNMENT',
+                priority: 'IMPORTANT',
+                date: mon2,
+                notes: 'Persist preference to localStorage. Toggle on <html data-theme="...">. Confirm all CSS tokens update correctly.',
+            },
+            {
+                userId: user.id,
+                title: 'Design review: onboarding tour mocks',
+                type: 'MEETING',
+                priority: 'IMPORTANT',
+                date: mon2,
+                startTime: at(mon2, 14),
+                endTime: at(mon2, 14, 45),
+                attendeeName: 'Design Lead',
+                notes: 'Review 3-step onboarding flow wireframes before implementation begins (#4).',
+            },
+
+            // ── TUESDAY (Sprint 4) ────────────────────────────────────────────
+
+            {
+                userId: user.id,
+                title: 'Daily standup',
+                type: 'MEETING',
+                priority: 'ROUTINE',
+                date: tue2,
+                startTime: at(tue2, 9, 30),
+                endTime: at(tue2, 9, 45),
+                attendeeName: 'Full Team',
+            },
+            {
+                userId: user.id,
+                title: 'Build first-time onboarding tour — closes #4',
+                type: 'ASSIGNMENT',
+                priority: 'CRITICAL',
+                date: tue2,
+                notes: '3-step: Welcome → Feature Tour → Profile Setup. Only shown when no session token exists.',
+            },
+            {
+                userId: user.id,
+                title: 'Harden session API — closes #3',
+                type: 'TASK',
+                priority: 'IMPORTANT',
+                date: tue2,
+                notes: 'Validate UUID format, add rate limiting, ensure token rotation on re-auth.',
+            },
+
+            // ── WEDNESDAY — mid-sprint check-in ──────────────────────────────
+
+            {
+                userId: user.id,
+                title: 'Daily standup',
+                type: 'MEETING',
+                priority: 'ROUTINE',
+                date: wed2,
+                startTime: at(wed2, 9, 30),
+                endTime: at(wed2, 9, 45),
+                attendeeName: 'Full Team',
+            },
+            {
+                userId: user.id,
+                title: 'Sprint 4 mid-sprint check-in — theme + onboarding merged',
+                type: 'DEADLINE',
+                priority: 'CRITICAL',
+                date: wed2,
+                notes: 'Theme toggle (#10) and onboarding tour (#4) PRs must be merged by EOD Wednesday.',
+            },
+            {
+                userId: user.id,
+                title: 'Write onboarding tour tests',
+                type: 'TASK',
+                priority: 'IMPORTANT',
+                date: wed2,
+                notes: 'Test session gate logic, carousel navigation, and profile setup submission.',
+            },
+            {
+                userId: user.id,
+                title: 'Accessibility audit — WCAG 2.5.5 tap targets',
+                type: 'ASSIGNMENT',
+                priority: 'IMPORTANT',
+                date: wed2,
+                notes: 'Verify all interactive elements meet 44×44px minimum. Fix any violations.',
+            },
+
+            // ── THURSDAY ─────────────────────────────────────────────────────
+
+            {
+                userId: user.id,
+                title: 'Daily standup',
+                type: 'MEETING',
+                priority: 'ROUTINE',
+                date: thu2,
+                startTime: at(thu2, 9, 30),
+                endTime: at(thu2, 9, 45),
+                attendeeName: 'Full Team',
+            },
+            {
+                userId: user.id,
+                title: '1:1 with Tech Lead',
+                type: 'MEETING',
+                priority: 'IMPORTANT',
+                date: thu2,
+                startTime: at(thu2, 15),
+                endTime: at(thu2, 15, 30),
+                attendeeName: 'Tech Lead',
+                notes: 'Review Sprint 4 progress, discuss SWR caching strategy and Zustand session slice.',
+            },
+            {
+                userId: user.id,
+                title: 'SWR cache invalidation review',
+                type: 'TASK',
+                priority: 'IMPORTANT',
+                date: thu2,
+                notes: 'Ensure item mutations correctly invalidate useWeekItems and useItems SWR keys.',
+            },
+            {
+                userId: user.id,
+                title: 'End-to-end smoke test on staging',
+                type: 'TASK',
+                priority: 'ROUTINE',
+                date: thu2,
+                notes: 'Full flow: onboarding → carousel → home → add item → complete item → edit item.',
+            },
+
+            // ── FRIDAY (Sprint 4 close) ───────────────────────────────────────
+
+            {
+                userId: user.id,
+                title: 'Daily standup',
+                type: 'MEETING',
+                priority: 'ROUTINE',
+                date: fri3,
+                startTime: at(fri3, 9, 30),
+                endTime: at(fri3, 9, 45),
+                attendeeName: 'Full Team',
+            },
+            {
+                userId: user.id,
+                title: 'Sprint 4 final PR deadline — all issues merged',
+                type: 'DEADLINE',
+                priority: 'CRITICAL',
+                date: fri3,
+                notes: '#3, #4, #10 PRs merged to main by EOD Friday.',
+            },
+            {
+                userId: user.id,
+                title: 'Sprint 4 Demo & Review',
+                type: 'MEETING',
+                priority: 'CRITICAL',
+                date: fri3,
+                startTime: at(fri3, 14),
+                endTime: at(fri3, 15, 30),
+                attendeeName: 'Full Team',
+                notes: 'Demo: theme toggle (#10), onboarding tour (#4), session hardening (#3).',
+            },
+            {
+                userId: user.id,
+                title: 'Sprint 4 Retrospective',
+                type: 'MEETING',
+                priority: 'IMPORTANT',
+                date: fri3,
+                startTime: at(fri3, 16),
+                endTime: at(fri3, 17),
+                attendeeName: 'Full Team',
+                notes: 'Retro + plan for final polish sprint.',
             },
         ],
     });
