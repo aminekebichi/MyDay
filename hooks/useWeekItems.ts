@@ -6,7 +6,7 @@ const fetcher = (url: string) => fetch(url, { headers: { "X-Session-Token": "usr
 
 export function useWeekItems(startDate: Date) {
     const setItems = useStore((state: any) => state.setItems);
-    const { data, error, isLoading } = useSWR(`/api/items/week?start=${startDate.toISOString()}`, fetcher);
+    const { data, error, isLoading } = useSWR(`/api/items/week?start=${startDate.toISOString()}&days=60`, fetcher);
     
     useEffect(() => {
         if (data && Array.isArray(data)) {

@@ -1,22 +1,64 @@
 import { CalendarStrip } from '../../components/home/CalendarStrip';
+import { TodoToday } from '../../components/home/TodoToday';
+import { OverviewSection } from '../../components/home/OverviewSection';
+import { Clock } from '../../components/home/Clock';
+import { AddItemSheet } from '../../components/sheets/AddItemSheet';
+import { AddButton } from '../../components/home/AddButton';
 
 export default function Home() {
     return (
-        <main className="min-h-screen bg-[var(--bg-base)] text-[var(--text-primary)]">
-            <div className="max-w-md mx-auto h-full flex flex-col border-x border-[var(--border)] min-h-screen">
-                <header className="p-4 bg-[var(--bg-surface)] border-b border-[var(--border)]">
-                    <h1 className="text-xl font-instrument">MyDay Preview</h1>
+        <main className="min-h-screen" style={{ backgroundColor: 'var(--bg-base)' }}>
+            {/* Full-width container — expands to fill the viewport at all screen sizes */}
+            <div className="w-full min-h-screen flex flex-col relative">
+                {/* App header */}
+                <header
+                    className="px-4 py-3 border-b flex-none flex items-center justify-between"
+                    style={{
+                        backgroundColor: 'var(--bg-surface)',
+                        borderColor: 'var(--border)',
+                    }}
+                >
+                    <h1
+                        className="text-xl font-instrument"
+                        style={{ color: 'var(--text-primary)' }}
+                    >
+                        MyDay
+                    </h1>
+                    <Clock />
                 </header>
 
-                {/* Calendar Strip Section */}
-                <section className="bg-[var(--bg-base)] border-b border-[var(--border)] pb-2">
+                {/* ── SECTION 1: Scrollable carousel calendar ───────────────────────
+                    Implemented in CalendarStrip. Expands to fill its natural height. */}
+                <section
+                    className="flex-none border-b"
+                    style={{ borderColor: 'var(--border)' }}
+                    aria-label="Weekly calendar"
+                >
                     <CalendarStrip />
                 </section>
 
-                <section className="p-4 flex-1">
-                    <p className="text-sm text-[var(--text-muted)] italic font-caveat">Select a day above to view details.</p>
+                {/* ── SECTION 2: Weekly overview ──────────────────────────────────── */}
+                <section
+                    className="flex-none border-b"
+                    style={{ borderColor: 'var(--border)' }}
+                    aria-label="Weekly overview"
+                >
+                    <OverviewSection />
+                </section>
+
+                {/* ── SECTION 3: To-Do Today ────────────────────────────────────────
+                    Grows to fill remaining vertical space so the page scrolls naturally.
+                    Extra bottom padding keeps content clear of the sticky CTA button. */}
+                <section className="flex-1 pb-32">
+                    <TodoToday />
                 </section>
             </div>
+
+            {/* Sticky "Add to MyDay" CTA — fixed to the bottom, spans full viewport width */}
+            <AddButton />
+
+            {/* Add Item bottom sheet — rendered at root level (above everything) */}
+            <AddItemSheet />
         </main>
     );
 }

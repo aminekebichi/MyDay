@@ -12,6 +12,15 @@ interface StoreState {
 
     sessionUser: any | null;
     setSessionUser: (user: any) => void;
+
+    isAddSheetOpen: boolean;
+    setIsAddSheetOpen: (open: boolean) => void;
+
+    editingItem: Item | null;
+    setEditingItem: (item: Item | null) => void;
+
+    selectedDate: Date;
+    setSelectedDate: (date: Date) => void;
 }
 
 export const useStore = create<StoreState>((set) => ({
@@ -27,4 +36,13 @@ export const useStore = create<StoreState>((set) => ({
 
     sessionUser: null,
     setSessionUser: (user) => set({ sessionUser: user }),
+
+    isAddSheetOpen: false,
+    setIsAddSheetOpen: (open) => set({ isAddSheetOpen: open }),
+
+    editingItem: null,
+    setEditingItem: (item) => set({ editingItem: item }),
+
+    selectedDate: new Date(),
+    setSelectedDate: (date) => set({ selectedDate: date }),
 }));

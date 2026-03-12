@@ -207,59 +207,59 @@ All three home-screen sections subscribe to the same Zustand slice. When any ite
 
 ## 5. Design System
 
-### 5.1 Theme — Obsidian-Inspired
+### 5.1 Theme — Claude-Inspired
 
-The color palette mirrors Obsidian's dark and light modes: deep navy/charcoal surfaces for dark mode; warm off-white and soft gray surfaces for light mode. The user can toggle themes; preference is persisted to localStorage.
+The color palette mirrors Claude Web's aesthetic: near-black surfaces with warm undertones for dark mode; warm cream and parchment surfaces for light mode. The primary accent is a warm coral/terracotta that reflects Claude's brand identity. The user can toggle themes; preference is persisted to localStorage.
 
 #### Dark Mode Palette
 
 | Token | Value | Role |
 |-------|-------|------|
-| `--bg-base` | `#1E1E2E` | Primary app background |
-| `--bg-surface` | `#27273A` | Cards, panels, sheet backgrounds |
-| `--bg-elevated` | `#313145` | Elevated surfaces (today column, modals) |
-| `--text-primary` | `#CDD6F4` | Main readable text |
-| `--text-muted` | `#7F849C` | Secondary labels, placeholders |
-| `--accent` | `#7C3AED` | Primary accent (brand, CTA, today highlight) |
-| `--border` | `#45475A` | Subtle borders and dividers |
+| `--bg-base` | `#0F0F0E` | Near-black primary background with warm undertone |
+| `--bg-surface` | `#1A1917` | Cards, panels, sheet backgrounds |
+| `--bg-elevated` | `#252320` | Elevated surfaces (today column, modals) |
+| `--text-primary` | `#ECECEA` | Warm off-white readable text |
+| `--text-muted` | `#888582` | Warm gray secondary labels, placeholders |
+| `--accent` | `#D4846A` | Warm coral/terracotta (brand, CTA, today highlight) |
+| `--border` | `#2E2B28` | Subtle warm dark borders and dividers |
 
 #### Light Mode Palette
 
 | Token | Value | Role |
 |-------|-------|------|
-| `--bg-base` | `#FAFAF8` | Warm off-white base |
-| `--bg-surface` | `#F1F0EC` | Slightly darker surface |
-| `--bg-elevated` | `#FFFFFF` | Cards and modals |
-| `--text-primary` | `#1E1E2E` | Near-black text |
-| `--text-muted` | `#6C6C80` | Muted labels |
-| `--accent` | `#5B21B6` | Darker purple for light-mode contrast |
-| `--border` | `#D9D7D0` | Soft warm gray borders |
+| `--bg-base` | `#FAF9F7` | Warm cream base |
+| `--bg-surface` | `#F0EDE8` | Slightly darker parchment surface |
+| `--bg-elevated` | `#FFFFFF` | Pure white cards and modals |
+| `--text-primary` | `#1A1916` | Near-black with warm tint |
+| `--text-muted` | `#8B8680` | Warm muted labels |
+| `--accent` | `#C06B4A` | Deeper coral for light-mode contrast |
+| `--border` | `#E5E0D8` | Warm light parchment borders |
 
 ---
 
 ### 5.2 Category Color Coding (Muted)
 
-All category colors are desaturated to maintain Obsidian's understated aesthetic. Color is applied as a left-border stripe and a faint background tint on item rows.
+All category colors are desaturated and warm-leaning to complement Claude's palette. Color is applied as a left-border stripe and a faint background tint on item rows.
 
 | Category | Dark Mode | Light Mode | Character |
 |----------|-----------|------------|-----------|
-| `task` | `#4A4A8A` | `#6B6BAA` | Slate blue |
-| `assignment` | `#6A4A2A` | `#8B6A4A` | Muted amber |
-| `event` | `#2A5A4A` | `#3A7A6A` | Forest green |
-| `meeting` | `#2A4A6A` | `#3A6A8A` | Steel blue |
-| `deadline` | `#6A2A2A` | `#8A4A4A` | Muted rose |
+| `task` | `#4A5A7A` | `#6A7A9A` | Warm slate blue |
+| `assignment` | `#7A5030` | `#9A7050` | Warm amber-brown |
+| `event` | `#2A5A3A` | `#3A7A5A` | Warm forest green |
+| `meeting` | `#3A4A5A` | `#5A6A7A` | Warm slate gray |
+| `deadline` | `#7A3A2A` | `#9A5040` | Warm rust/rose |
 
 ---
 
 ### 5.3 Priority Levels
 
-Priority is expressed through a subtle left-accent indicator and a small badge label. Colors are intentionally muted to avoid visual noise in dense lists.
+Priority is expressed through a subtle left-accent indicator and a small badge label. Colors are intentionally muted and warm-toned to avoid visual noise in dense lists.
 
 | Enum Value | Display Name | Color (Dark) | Color (Light) |
 |------------|-------------|--------------|---------------|
-| `routine` | Routine | `#7F849C` | `#9090AA` |
-| `important` | Important | `#A07A3A` | `#B08040` |
-| `critical` | Critical | `#8A3A3A` | `#9A4040` |
+| `routine` | Routine | `#888582` | `#9A9590` |
+| `important` | Important | `#AA8040` | `#BA9050` |
+| `critical` | Critical | `#9A4A35` | `#AA5A45` |
 
 ---
 
@@ -427,7 +427,7 @@ User taps checkbox on item row
 | M2 | **Data Layer** | Full CRUD API routes for items, Zustand store, SWR integration, recurrence expansion logic |
 | M3 | **Home Screen** | Calendar strip, Overview section, To-Do Today list, Add Item bottom sheet — all wired to live data |
 | M4 | **Intro Carousel** | Three-slide carousel (Header, Daily Overview, Week Ahead), first-time onboarding tour, `lastOpenedAt` gate |
-| M5 | **Design Polish** | Obsidian theme (dark + light), Instrument Serif + Geist Mono typography, category/priority color system, Framer Motion animations |
+| M5 | **Design Polish** | Claude-inspired theme (dark + light), Instrument Serif + Geist Mono typography, category/priority color system, Framer Motion animations |
 | M6 | **QA & Responsive** | Mobile breakpoint testing (375 px, 768 px), edge cases (empty state, first day, recurrence), performance profiling |
 
 ---

@@ -19,7 +19,8 @@ export async function GET(req: NextRequest) {
 
     try {
         const windowStart = startOfDay(parseISO(startParam));
-        const windowEnd = endOfDay(addDays(windowStart, 6));
+        const daysParam = parseInt(searchParams.get('days') ?? '7', 10);
+        const windowEnd = endOfDay(addDays(windowStart, Math.max(7, daysParam)));
 
         const items = await prisma.item.findMany({
             where: {
