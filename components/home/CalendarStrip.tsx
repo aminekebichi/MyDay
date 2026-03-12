@@ -47,9 +47,11 @@ export function CalendarStrip() {
         const calculate = () => {
             if (!navRef.current) return;
             const available = navRef.current.clientWidth - OVERLAY_WIDTH - NAV_RIGHT_PAD;
-            const count = Math.max(3, Math.floor((available + CARD_GAP) / (100 + CARD_GAP)));
+            const isLarge = window.innerWidth >= 1024;
+            const targetWidth = isLarge ? 300 : 150;
+            const count = Math.max(3, Math.floor((available + CARD_GAP) / (targetWidth + CARD_GAP)));
             const width = (available - CARD_GAP * (count - 1)) / count;
-            setCardWidth(Math.max(70, width));
+            setCardWidth(Math.min(200, Math.max(targetWidth * 0.7, width)));
         };
         calculate();
         const observer = new ResizeObserver(calculate);

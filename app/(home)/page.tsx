@@ -1,5 +1,6 @@
 import { CalendarStrip } from '../../components/home/CalendarStrip';
 import { TodoToday } from '../../components/home/TodoToday';
+import { OverviewSection } from '../../components/home/OverviewSection';
 import { AddItemSheet } from '../../components/sheets/AddItemSheet';
 import { AddButton } from '../../components/home/AddButton';
 
@@ -34,16 +35,13 @@ export default function Home() {
                     <CalendarStrip />
                 </section>
 
-                {/* ── SECTION 2: Weekly overview ────────────────────────────────────
-                    Placeholder — OverviewSection component to be built next. */}
+                {/* ── SECTION 2: Weekly overview ──────────────────────────────────── */}
                 <section
-                    className="flex-none px-4 py-4 border-b"
+                    className="flex-none border-b"
                     style={{ borderColor: 'var(--border)' }}
                     aria-label="Weekly overview"
                 >
-                    <p className="font-caveat text-lg" style={{ color: 'var(--text-muted)' }}>
-                        {/* Generated summary quip will live here */}
-                    </p>
+                    <OverviewSection />
                 </section>
 
                 {/* ── SECTION 3: To-Do Today ────────────────────────────────────────

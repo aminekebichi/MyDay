@@ -12,6 +12,7 @@ type Item = any;
 export function TodoToday() {
     const items = useStore((state: any) => state.items);
     const updateItem = useStore((state: any) => state.updateItem);
+    const setEditingItem = useStore((state: any) => state.setEditingItem);
     const selectedDate = useStore((state: any) => state.selectedDate);
 
     const activeDate = startOfDay(selectedDate ?? new Date());
@@ -91,7 +92,7 @@ export function TodoToday() {
                 <ul>
                     {todayItems.map((item: Item) => (
                         <li key={item.id}>
-                            <ItemRow item={item} onToggle={handleToggle} />
+                            <ItemRow item={item} onToggle={handleToggle} onEdit={setEditingItem} />
                         </li>
                     ))}
                 </ul>

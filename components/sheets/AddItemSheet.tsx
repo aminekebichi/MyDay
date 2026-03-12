@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from 'react';
-import { format } from 'date-fns';
+import { format, parseISO } from 'date-fns';
 import { useStore } from '../../lib/store';
 
 type ItemType = 'TASK' | 'ASSIGNMENT' | 'EVENT' | 'MEETING' | 'DEADLINE';
@@ -29,7 +29,6 @@ const RECURRENCES: { value: Recurrence; label: string }[] = [
     { value: 'MONTHLY', label: 'Monthly' },
 ];
 
-// Shared input style (applied via inline style to respect CSS variables)
 const inputStyle: React.CSSProperties = {
     backgroundColor: 'var(--bg-surface)',
     color: 'var(--text-primary)',
@@ -37,11 +36,18 @@ const inputStyle: React.CSSProperties = {
 };
 
 // Implements #10: Add Item bottom sheet — context-sensitive fields per type
+// Also handles editing existing items when editingItem is set in the store
 export function AddItemSheet() {
-    const isOpen = useStore((state: any) => state.isAddSheetOpen);
-    const setIsOpen = useStore((state: any) => state.setIsAddSheetOpen);
+    const isAddOpen = useStore((state: any) => state.isAddSheetOpen);
+    const setIsAddOpen = useStore((state: any) => state.setIsAddSheetOpen);
+    const editingItem = useStore((state: any) => state.editingItem);
+    const setEditingItem = useStore((state: any) => state.setEditingItem);
     const addItem = useStore((state: any) => state.addItem);
+    const updateItem = useStore((state: any) => state.updateItem);
     const deleteItem = useStore((state: any) => state.deleteItem);
+
+    const isOpen = isAddOpen || editingItem !== null;
+    const isEditing = editingItem !== null;
 
     const [type, setType] = useState<ItemType>('TASK');
     const [title, setTitle] = useState('');
@@ -61,15 +67,35 @@ export function AddItemSheet() {
 
     const titleRef = useRef<HTMLInputElement>(null);
 
-    // Per-type field visibility (PRD §4.4)
     const showTimeFields = type === 'EVENT' || type === 'MEETING';
     const showLocationField = type === 'EVENT' || type === 'MEETING';
     const showJoinUrlField = type === 'MEETING';
     const showAttendeeField = type === 'MEETING';
 
-    // Reset form on open; autofocus title
+    const close = () => {
+        setIsAddOpen(false);
+        setEditingItem(null);
+    };
+
+    // Populate form when sheet opens
     useEffect(() => {
-        if (isOpen) {
+        if (!isOpen) return;
+        if (isEditing) {
+            const item = editingItem;
+            setType(item.type ?? 'TASK');
+            setTitle(item.title ?? '');
+            setDate(item.date ? format(parseISO(item.date), 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd'));
+            setPriority(item.priority ?? 'ROUTINE');
+            setRecurrence(item.recurrence ?? 'NONE');
+            setRecurrenceEndDate(item.recurrenceEndDate ? format(parseISO(item.recurrenceEndDate), 'yyyy-MM-dd') : '');
+            setStartTime(item.startTime ? format(parseISO(item.startTime), 'HH:mm') : '');
+            setEndTime(item.endTime ? format(parseISO(item.endTime), 'HH:mm') : '');
+            setLocation(item.location ?? '');
+            setJoinUrl(item.joinUrl ?? '');
+            setAttendeeName(item.attendeeName ?? '');
+            setNotes(item.notes ?? '');
+            setShowNotes(!!item.notes);
+        } else {
             setType('TASK');
             setTitle('');
             setDate(format(new Date(), 'yyyy-MM-dd'));
@@ -83,9 +109,11 @@ export function AddItemSheet() {
             setAttendeeName('');
             setNotes('');
             setShowNotes(false);
-            setError(null);
-            setTimeout(() => titleRef.current?.focus(), 50);
         }
+        setError(null);
+        setIsSubmitting(false);
+        setTimeout(() => titleRef.current?.focus(), 50);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isOpen]);
 
     const canSave = title.trim().length > 0 && date.length > 0 && !isSubmitting;
@@ -123,73 +151,96 @@ export function AddItemSheet() {
         setIsSubmitting(true);
         setError(null);
 
-        const tempId = `temp_${Date.now()}`;
         const payload = buildPayload();
 
-        // Optimistic update — close sheet immediately, item appears at once
-        addItem({ id: tempId, ...payload, completedAt: null, createdAt: new Date().toISOString() });
-        setIsOpen(false);
+        if (isEditing) {
+            // — Edit flow —
+            const previous = { ...editingItem };
+            // Optimistic update
+            updateItem(editingItem.id, payload);
+            close();
 
-        try {
-            const res = await fetch('/api/items', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Session-Token': 'usr_test_123',
-                },
-                body: JSON.stringify(payload),
-            });
+            try {
+                const res = await fetch(`/api/items/${editingItem.id}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Session-Token': 'usr_test_123',
+                    },
+                    body: JSON.stringify(payload),
+                });
 
-            if (!res.ok) {
-                const data = await res.json().catch(() => ({}));
-                throw new Error((data as { error?: string }).error ?? 'Failed to save item');
+                if (!res.ok) {
+                    const data = await res.json().catch(() => ({}));
+                    throw new Error((data as { error?: string }).error ?? 'Failed to update item');
+                }
+
+                const updated = await res.json();
+                updateItem(editingItem.id, updated);
+            } catch (err) {
+                // Rollback
+                updateItem(previous.id, previous);
+                setIsSubmitting(false);
+                setEditingItem(previous);
+                setError(err instanceof Error ? err.message : 'Something went wrong. Please try again.');
             }
+        } else {
+            // — Add flow —
+            const tempId = `temp_${Date.now()}`;
+            addItem({ id: tempId, ...payload, completedAt: null, createdAt: new Date().toISOString() });
+            close();
 
-            const newItem = await res.json();
-            // Swap temp item for the real server-persisted item
-            deleteItem(tempId);
-            addItem(newItem);
-        } catch (err) {
-            // Rollback and reopen sheet with error message
-            deleteItem(tempId);
-            setIsSubmitting(false);
-            setIsOpen(true);
-            setError(err instanceof Error ? err.message : 'Something went wrong. Please try again.');
+            try {
+                const res = await fetch('/api/items', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Session-Token': 'usr_test_123',
+                    },
+                    body: JSON.stringify(payload),
+                });
+
+                if (!res.ok) {
+                    const data = await res.json().catch(() => ({}));
+                    throw new Error((data as { error?: string }).error ?? 'Failed to save item');
+                }
+
+                const newItem = await res.json();
+                deleteItem(tempId);
+                addItem(newItem);
+            } catch (err) {
+                deleteItem(tempId);
+                setIsSubmitting(false);
+                setIsAddOpen(true);
+                setError(err instanceof Error ? err.message : 'Something went wrong. Please try again.');
+            }
         }
     };
 
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex flex-col justify-end">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             {/* Backdrop */}
             <div
                 className="absolute inset-0 bg-black/60"
-                onClick={() => setIsOpen(false)}
+                onClick={close}
                 aria-hidden="true"
             />
 
-            {/* Sheet panel */}
+            {/* Dialog panel */}
             <div
                 role="dialog"
                 aria-modal="true"
-                aria-label="Add item to MyDay"
-                className="relative max-w-md w-full mx-auto rounded-t-2xl flex flex-col"
+                aria-label={isEditing ? 'Edit item' : 'Add item to MyDay'}
+                className="relative w-full rounded-2xl flex flex-col"
                 style={{
                     backgroundColor: 'var(--bg-elevated)',
-                    maxHeight: '88vh',
+                    maxWidth: 672,
+                    maxHeight: '90vh',
                     border: '1px solid var(--border)',
-                    borderBottom: 'none',
                 }}
             >
-                {/* Drag handle */}
-                <div className="flex justify-center pt-3 pb-1 flex-none">
-                    <div
-                        className="w-10 h-1 rounded-full"
-                        style={{ backgroundColor: 'var(--border)' }}
-                    />
-                </div>
-
                 {/* Header */}
                 <div
                     className="flex items-center justify-between px-4 py-3 border-b flex-none"
@@ -199,11 +250,11 @@ export function AddItemSheet() {
                         className="text-base font-instrument"
                         style={{ color: 'var(--text-primary)' }}
                     >
-                        Add to MyDay
+                        {isEditing ? 'Edit item' : 'Add to MyDay'}
                     </h2>
                     <button
                         type="button"
-                        onClick={() => setIsOpen(false)}
+                        onClick={close}
                         aria-label="Close sheet"
                         className="flex items-center justify-center w-[44px] h-[44px] -mr-2 rounded-xl text-lg"
                         style={{ color: 'var(--text-muted)' }}
@@ -525,7 +576,7 @@ export function AddItemSheet() {
                     >
                         <button
                             type="button"
-                            onClick={() => setIsOpen(false)}
+                            onClick={close}
                             className="flex-1 py-3 rounded-xl text-sm font-mono transition-colors"
                             style={{
                                 backgroundColor: 'var(--bg-surface)',
@@ -546,7 +597,7 @@ export function AddItemSheet() {
                                 cursor: canSave ? 'pointer' : 'not-allowed',
                             }}
                         >
-                            {isSubmitting ? 'Saving…' : 'Save'}
+                            {isSubmitting ? 'Saving…' : isEditing ? 'Update' : 'Save'}
                         </button>
                     </div>
                 </form>
