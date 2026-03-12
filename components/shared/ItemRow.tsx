@@ -1,100 +1,85 @@
 "use client";
 
-import { CATEGORY_COLORS } from '../../lib/constants';
-import { PriorityBadge } from './PriorityBadge';
+import { useStore } from "../../lib/store";
+import { Checkbox } from "../ui/checkbox";
+import { Badge } from "../ui/badge";
+import { CATEGORY_COLORS, PRIORITY_COLORS } from "../../lib/constants";
+import { motion } from "framer-motion";
 
-// To avoid TS errors until Prisma client is generated
-type Item = any;
+export function ItemRow({ item }: { item: any }) {
+    const token = useStore((state) => state.token);
+    const updateItem = useStore((state) => state.updateItem);
 
-interface ItemRowProps {
-    item: Item;
-    onToggle: (id: string, completedAt: string | null) => void;
-    onEdit: (item: Item) => void;
-}
-
-export function ItemRow({ item, onToggle, onEdit }: ItemRowProps) {
     const isCompleted = !!item.completedAt;
-    const categoryColor =
-        CATEGORY_COLORS[item.type as keyof typeof CATEGORY_COLORS]?.dark ??
-        CATEGORY_COLORS.TASK.dark;
 
-    const handleToggle = () => {
-        onToggle(item.id, isCompleted ? null : new Date().toISOString());
+    const handleToggle = async () => {
+        const now = new Date().toISOString();
+        const newCompletedAt = isCompleted ? null : now;
+
+        // Optimistic update
+        updateItem(item.id, { completedAt: newCompletedAt });
+
+        try {
+            const res = await fetch(`/api/items/${item.id}`, {
+                method: "PATCH",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-Session-Token": token || "",
+                },
+                body: JSON.stringify({ completedAt: newCompletedAt }),
+            });
+
+            if (!res.ok) throw new Error("Failed to update item");
+        } catch (error) {
+            console.error(error);
+            // Rollback
+            updateItem(item.id, { completedAt: item.completedAt });
+        }
     };
 
-    return (
-        <div className="flex items-start gap-1 px-4 py-1 border-b" style={{ borderColor: 'var(--border)' }}>
-            {/* Checkbox — 44×44 touch target (WCAG 2.5.5) */}
-            <button
-                type="button"
-                onClick={handleToggle}
-                aria-label={
-                    isCompleted
-                        ? `Mark "${item.title}" incomplete`
-                        : `Mark "${item.title}" complete`
-                }
-                className="flex-none flex items-center justify-center w-[44px] h-[44px] -ml-2"
-            >
-                <div
-                    className="w-5 h-5 rounded border flex items-center justify-center transition-colors"
-                    style={{
-                        borderColor: isCompleted ? 'var(--accent)' : 'var(--border)',
-                        backgroundColor: isCompleted ? 'var(--accent)' : 'transparent',
-                    }}
-                >
-                    {isCompleted && (
-                        <svg width="10" height="8" viewBox="0 0 10 8" fill="none" aria-hidden="true">
-                            <path
-                                d="M1 4L3.5 6.5L9 1"
-                                stroke="white"
-                                strokeWidth="1.5"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                            />
-                        </svg>
-                    )}
-                </div>
-            </button>
+    const categoryColor = CATEGORY_COLORS[item.type as keyof typeof CATEGORY_COLORS]?.dark || "#4A4A8A";
+    const priorityColor = PRIORITY_COLORS[item.priority as keyof typeof PRIORITY_COLORS]?.dark || "#7F849C";
 
-            {/* Content — left border stripe for category */}
-            <div
-                className="flex-1 min-w-0 py-3 pl-3 border-l-2"
-                style={{ borderLeftColor: categoryColor }}
-            >
-                <div className="flex items-center justify-between gap-2">
-                    <span
-                        className="text-sm leading-snug transition-all duration-200 truncate"
-                        style={{
-                            color: isCompleted ? 'var(--text-muted)' : 'var(--text-primary)',
-                            textDecoration: isCompleted ? 'line-through' : 'none',
-                        }}
+    return (
+        <motion.div
+            layout
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="group relative flex items-center gap-3 p-3 rounded-lg border bg-surface transition-all hover:bg-opacity-80"
+            style={{ 
+                borderColor: 'var(--border)',
+                borderLeft: `4px solid ${categoryColor}`,
+                backgroundColor: 'var(--bg-surface)'
+            }}
+        >
+            <div className="flex-none pt-0.5">
+                <Checkbox
+                    checked={isCompleted}
+                    onCheckedChange={handleToggle}
+                    className="h-5 w-5 rounded-sm border-2"
+                    style={{ borderColor: categoryColor }}
+                />
+            </div>
+
+            <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-0.5">
+                    <span 
+                        className={`text-sm font-geist truncate ${isCompleted ? 'line-through opacity-50' : 'text-primary'}`}
+                        style={{ color: isCompleted ? 'var(--text-muted)' : 'var(--text-primary)' }}
                     >
                         {item.title}
                     </span>
-                    <div className="flex items-center gap-2 flex-none">
-                        <PriorityBadge priority={item.priority} />
-                        <button
-                            type="button"
-                            onClick={() => onEdit(item)}
-                            aria-label={`Edit "${item.title}"`}
-                            className="flex items-center justify-center w-[28px] h-[28px]"
-                            style={{ color: 'var(--text-muted)' }}
-                        >
-                            <svg width="12" height="12" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-                                <path
-                                    d="M9.5 1.5L12.5 4.5L4.5 12.5H1.5V9.5L9.5 1.5Z"
-                                    stroke="currentColor"
-                                    strokeWidth="1.2"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                />
-                            </svg>
-                        </button>
-                    </div>
+                    <Badge 
+                        variant="outline" 
+                        className="text-[9px] uppercase tracking-wider py-0 h-4 border-opacity-50"
+                        style={{ borderColor: priorityColor, color: priorityColor }}
+                    >
+                        {item.priority}
+                    </Badge>
                 </div>
 
                 {/* Secondary metadata */}
-                {(item.startTime || item.location || item.attendeeName) && (
+                {(item.startTime || item.location || item.attendeeName || item.user?.displayName) && (
                     <div
                         className="mt-0.5 flex items-center gap-1.5 text-[11px] font-mono"
                         style={{ color: 'var(--text-muted)' }}
@@ -109,11 +94,14 @@ export function ItemRow({ item, onToggle, onEdit }: ItemRowProps) {
                         )}
                         {item.location && <span>· {item.location}</span>}
                         {item.attendeeName && <span>· {item.attendeeName}</span>}
+                        {item.user?.displayName && (
+                            <span className="px-1.5 py-0.5 rounded bg-white/5 border border-white/10 ml-1" style={{ color: 'var(--accent)' }}>
+                                @{item.user.displayName}
+                            </span>
+                        )}
                     </div>
                 )}
             </div>
-
-
-        </div>
+        </motion.div>
     );
 }
