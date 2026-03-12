@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from 'react';
-import { isSameDay, startOfDay } from 'date-fns';
+import { format, isSameDay, isToday, startOfDay } from 'date-fns';
 import { useStore } from '../../lib/store';
 import { PRIORITY_ORDER } from '../../lib/constants';
 import { ItemRow } from '../shared/ItemRow';
@@ -12,12 +12,13 @@ type Item = any;
 export function TodoToday() {
     const items = useStore((state: any) => state.items);
     const updateItem = useStore((state: any) => state.updateItem);
+    const selectedDate = useStore((state: any) => state.selectedDate);
 
-    const today = startOfDay(new Date());
+    const activeDate = startOfDay(selectedDate ?? new Date());
 
     const todayItems = useMemo(() => {
         return items
-            .filter((item: Item) => isSameDay(new Date(item.date), today))
+            .filter((item: Item) => isSameDay(new Date(item.date), activeDate))
             .sort((a: Item, b: Item) => {
                 // Completed items go to the bottom
                 if (!!a.completedAt !== !!b.completedAt) {
@@ -32,7 +33,7 @@ export function TodoToday() {
                 const tB = b.startTime ? new Date(b.startTime).getTime() : Number.MAX_SAFE_INTEGER;
                 return tA - tB;
             });
-    }, [items, today]);
+    }, [items, activeDate]);
 
     const completedCount = todayItems.filter((item: Item) => !!item.completedAt).length;
 
@@ -61,12 +62,14 @@ export function TodoToday() {
         }
     };
 
+    const headingLabel = isToday(activeDate) ? 'Today' : format(activeDate, 'EEEE, MMM d');
+
     return (
-        <section aria-label="Today's tasks">
+        <section aria-label={`Tasks for ${headingLabel}`}>
             {/* Section header */}
             <div className="px-4 pt-5 pb-3 flex items-baseline justify-between">
                 <h2 className="text-lg font-instrument" style={{ color: 'var(--text-primary)' }}>
-                    Today
+                    {headingLabel}
                 </h2>
                 {todayItems.length > 0 && (
                     <span className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>
@@ -78,7 +81,7 @@ export function TodoToday() {
             {todayItems.length === 0 ? (
                 <div className="px-4 py-8 text-center">
                     <p className="font-caveat text-xl" style={{ color: 'var(--text-muted)' }}>
-                        Nothing scheduled for today.
+                        Nothing scheduled.
                     </p>
                     <p className="font-caveat text-base mt-1" style={{ color: 'var(--text-muted)' }}>
                         Tap + to add something.

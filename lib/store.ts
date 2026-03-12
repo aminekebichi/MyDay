@@ -15,6 +15,9 @@ interface StoreState {
 
     isAddSheetOpen: boolean;
     setIsAddSheetOpen: (open: boolean) => void;
+
+    selectedDate: Date;
+    setSelectedDate: (date: Date) => void;
 }
 
 export const useStore = create<StoreState>((set) => ({
@@ -33,4 +36,7 @@ export const useStore = create<StoreState>((set) => ({
 
     isAddSheetOpen: false,
     setIsAddSheetOpen: (open) => set({ isAddSheetOpen: open }),
+
+    selectedDate: new Date(),
+    setSelectedDate: (date) => set({ selectedDate: date }),
 }));

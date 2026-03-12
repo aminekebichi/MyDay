@@ -6,11 +6,8 @@ import { AddButton } from '../../components/home/AddButton';
 export default function Home() {
     return (
         <main className="min-h-screen" style={{ backgroundColor: 'var(--bg-base)' }}>
-            {/* Mobile-width container — matches PRD's max-w-md, mobile-first layout */}
-            <div
-                className="max-w-md mx-auto min-h-screen flex flex-col relative border-x"
-                style={{ borderColor: 'var(--border)' }}
-            >
+            {/* Full-width container — expands to fill the viewport at all screen sizes */}
+            <div className="w-full min-h-screen flex flex-col relative">
                 {/* App header */}
                 <header
                     className="px-4 py-3 border-b flex-none"
@@ -52,13 +49,12 @@ export default function Home() {
                 {/* ── SECTION 3: To-Do Today ────────────────────────────────────────
                     Grows to fill remaining vertical space so the page scrolls naturally.
                     Extra bottom padding keeps content clear of the sticky CTA button. */}
-                <section className="flex-1 pb-24">
+                <section className="flex-1 pb-32">
                     <TodoToday />
                 </section>
             </div>
 
-            {/* Sticky "Add to MyDay" CTA — fixed to the bottom of the viewport,
-                centered to align with the max-w-md container */}
+            {/* Sticky "Add to MyDay" CTA — fixed to the bottom, spans full viewport width */}
             <AddButton />
 
             {/* Add Item bottom sheet — rendered at root level (above everything) */}

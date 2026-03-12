@@ -4,23 +4,23 @@
 
 @layer base {
   :root {
-    --bg-base:      #1E1E2E;
-    --bg-surface:   #27273A;
-    --bg-elevated:  #313145;
-    --text-primary: #CDD6F4;
-    --text-muted:   #7F849C;
-    --accent:       #7C3AED;
-    --border:       #45475A;
+    --bg-base:      #0F0F0E;
+    --bg-surface:   #1A1917;
+    --bg-elevated:  #252320;
+    --text-primary: #ECECEA;
+    --text-muted:   #888582;
+    --accent:       #D4846A;
+    --border:       #2E2B28;
   }
 
   [data-theme="light"] {
-    --bg-base:      #FAFAF8;
-    --bg-surface:   #F1F0EC;
+    --bg-base:      #FAF9F7;
+    --bg-surface:   #F0EDE8;
     --bg-elevated:  #FFFFFF;
-    --text-primary: #1E1E2E;
-    --text-muted:   #6C6C80;
-    --accent:       #5B21B6;
-    --border:       #D9D7D0;
+    --text-primary: #1A1916;
+    --text-muted:   #8B8680;
+    --accent:       #C06B4A;
+    --border:       #E5E0D8;
   }
 }
 
@@ -35,8 +35,8 @@ body {
     45deg,
     transparent,
     transparent 4px,
-    rgba(127, 132, 156, 0.1) 4px,
-    rgba(127, 132, 156, 0.1) 8px
+    rgba(136, 133, 130, 0.1) 4px,
+    rgba(136, 133, 130, 0.1) 8px
   );
 }
 
@@ -45,15 +45,33 @@ body {
     45deg,
     transparent,
     transparent 4px,
-    rgba(108, 108, 128, 0.1) 4px,
-    rgba(108, 108, 128, 0.1) 8px
+    rgba(139, 134, 128, 0.1) 4px,
+    rgba(139, 134, 128, 0.1) 8px
   );
+}
+
+/* Hide scrollbar while preserving scroll functionality */
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
 }
 
 * {
   transition: background-color 200ms ease, border-color 200ms ease;
   min-height: 0;
   min-width: 0;
+}
+
+/* Calendar fixed label entrance animation */
+@keyframes calendarLabelIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.calendar-label-enter {
+  animation: calendarLabelIn 160ms ease-out both;
 }
 
 .font-instrument {

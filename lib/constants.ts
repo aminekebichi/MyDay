@@ -1,15 +1,15 @@
 export const CATEGORY_COLORS = {
-    TASK: { dark: '#4A4A8A', light: '#6B6BAA' },
-    ASSIGNMENT: { dark: '#6A4A2A', light: '#8B6A4A' },
-    EVENT: { dark: '#2A5A4A', light: '#3A7A6A' },
-    MEETING: { dark: '#2A4A6A', light: '#3A6A8A' },
-    DEADLINE: { dark: '#6A2A2A', light: '#8A4A4A' },
+    TASK: { dark: '#4A5A7A', light: '#6A7A9A' },
+    ASSIGNMENT: { dark: '#7A5030', light: '#9A7050' },
+    EVENT: { dark: '#2A5A3A', light: '#3A7A5A' },
+    MEETING: { dark: '#3A4A5A', light: '#5A6A7A' },
+    DEADLINE: { dark: '#7A3A2A', light: '#9A5040' },
 } as const;
 
 export const PRIORITY_COLORS = {
-    ROUTINE: { dark: '#7F849C', light: '#9090AA' },
-    IMPORTANT: { dark: '#A07A3A', light: '#B08040' },
-    CRITICAL: { dark: '#8A3A3A', light: '#9A4040' },
+    ROUTINE: { dark: '#888582', light: '#9A9590' },
+    IMPORTANT: { dark: '#AA8040', light: '#BA9050' },
+    CRITICAL: { dark: '#9A4A35', light: '#AA5A45' },
 } as const;
 
 export const PRIORITY_ORDER = {

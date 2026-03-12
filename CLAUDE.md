@@ -75,12 +75,24 @@ prisma/schema.prisma
 
 **Theming:** CSS custom properties on `<html data-theme="...">`, defined in `globals.css`. Dark mode is default. Theme preference persisted to localStorage.
 
+**Color palette — Claude-inspired:** Mirrors the Claude Web aesthetic. Dark mode uses near-black surfaces with warm undertones (`#0F0F0E` base) and a warm coral/terracotta accent (`#D4846A`). Light mode uses warm cream/parchment surfaces (`#FAF9F7` base) with the same coral accent deepened for contrast (`#C06B4A`). All borders and muted text carry warm gray undertones rather than cool blue-gray.
+
+| Token | Dark | Light | Role |
+|-------|------|-------|------|
+| `--bg-base` | `#0F0F0E` | `#FAF9F7` | Primary background |
+| `--bg-surface` | `#1A1917` | `#F0EDE8` | Cards, panels, sheets |
+| `--bg-elevated` | `#252320` | `#FFFFFF` | Today column, modals |
+| `--text-primary` | `#ECECEA` | `#1A1916` | Main readable text |
+| `--text-muted` | `#888582` | `#8B8680` | Labels, placeholders |
+| `--accent` | `#D4846A` | `#C06B4A` | Brand CTA, today highlight |
+| `--border` | `#2E2B28` | `#E5E0D8` | Borders, dividers |
+
 **Typography — three fonts, three roles:**
 - `Instrument Serif` — display, logo, section headings
 - `Geist Mono` (light) — all body text, item labels, timestamps
 - `Caveat` — personality/warmth only: weekly overview quip, carousel tagline beneath logo, empty-state copy. Never use for labels, navigation, buttons, or body text.
 
-**Category/priority colors** are intentionally muted (see `CATEGORY_COLORS` and `PRIORITY_COLORS` in the codebase). Never use bright or fully saturated colors.
+**Category/priority colors** are intentionally muted and warm-leaning (see `CATEGORY_COLORS` and `PRIORITY_COLORS` in `lib/constants.ts`). Never use bright or fully saturated colors. Never hardcode hex values in component files — always use `var(--token-name)` CSS custom properties for the theme tokens.
 
 ### Session & Carousel Gate
 
