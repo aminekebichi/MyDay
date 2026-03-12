@@ -20,7 +20,7 @@ async function main() {
     })
 
     console.log("Generating sample items...")
-    const today = startOfDay(new Date())
+    const today = startOfDay(new Date("2026-03-11T12:00:00-04:00"))
 
     const items = [
         // Today: CRITICAL Task

@@ -5,14 +5,14 @@ import { useEffect } from "react";
 const fetcher = (url: string) => fetch(url, { headers: { "X-Session-Token": "usr_test_123" } }).then(r => r.json());
 
 export function useWeekItems(startDate: Date) {
-    const setItems = useStore((state: any) => state.setItems);
+    const mergeItems = useStore((state: any) => state.mergeItems);
     const { data, error, isLoading } = useSWR(`/api/items/week?start=${startDate.toISOString()}`, fetcher);
     
     useEffect(() => {
         if (data && Array.isArray(data)) {
-            setItems(data);
+            mergeItems(data);
         }
-    }, [data, setItems]);
+    }, [data, mergeItems]);
     
     return { items: data, error, isLoading };
 }

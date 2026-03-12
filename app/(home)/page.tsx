@@ -1,4 +1,5 @@
 import { CalendarStrip } from '../../components/home/CalendarStrip';
+import { DayDetailList } from '../../components/home/DayDetailList';
 
 export default function Home() {
     return (
@@ -14,7 +15,7 @@ export default function Home() {
                 </section>
 
                 <section className="p-4 flex-1">
-                    <p className="text-sm text-[var(--text-muted)] italic font-caveat">Select a day above to view details.</p>
+                    <DayDetailList />
                 </section>
             </div>
         </main>
