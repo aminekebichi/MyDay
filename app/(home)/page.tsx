@@ -1,6 +1,7 @@
 import { CalendarStrip } from '../../components/home/CalendarStrip';
 import { TodoToday } from '../../components/home/TodoToday';
 import { OverviewSection } from '../../components/home/OverviewSection';
+import { Clock } from '../../components/home/Clock';
 import { AddItemSheet } from '../../components/sheets/AddItemSheet';
 import { AddButton } from '../../components/home/AddButton';
 
@@ -11,7 +12,7 @@ export default function Home() {
             <div className="w-full min-h-screen flex flex-col relative">
                 {/* App header */}
                 <header
-                    className="px-4 py-3 border-b flex-none"
+                    className="px-4 py-3 border-b flex-none flex items-center justify-between"
                     style={{
                         backgroundColor: 'var(--bg-surface)',
                         borderColor: 'var(--border)',
@@ -23,6 +24,7 @@ export default function Home() {
                     >
                         MyDay
                     </h1>
+                    <Clock />
                 </header>
 
                 {/* ── SECTION 1: Scrollable carousel calendar ───────────────────────

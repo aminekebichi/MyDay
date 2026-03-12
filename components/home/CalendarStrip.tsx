@@ -174,6 +174,7 @@ export function CalendarStrip() {
 
     const scrollToToday = () => {
         navRef.current?.scrollTo({ left: 0, behavior: 'smooth' });
+        setSelectedDate(today);
     };
 
     return (
