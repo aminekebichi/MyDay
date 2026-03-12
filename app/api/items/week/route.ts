@@ -18,26 +18,48 @@ export async function GET(req: NextRequest) {
     }
 
     try {
+        const adminRequestedUserId = searchParams.get('userId');
+        const isGlobal = searchParams.get('global') === 'true' && user.role === 'ADMIN';
+        let targetUserId = user.id;
+
+        if (user.role === 'ADMIN' && adminRequestedUserId && adminRequestedUserId !== 'all') {
+            targetUserId = adminRequestedUserId;
+        }
+
         const windowStart = startOfDay(parseISO(startParam));
         const daysParam = parseInt(searchParams.get('days') ?? '7', 10);
         const windowEnd = endOfDay(addDays(windowStart, Math.max(7, daysParam)));
 
+        // Base where clause
+        const whereClause: any = {
+            OR: [
+                {
+                    recurrence: 'NONE',
+                    date: {
+                        gte: windowStart,
+                        lte: windowEnd
+                    }
+                },
+                {
+                    recurrence: { not: 'NONE' },
+                    date: { lte: windowEnd },
+                }
+            ]
+        };
+
+        if (!isGlobal) {
+            whereClause.userId = targetUserId;
+        }
+
         const items = await prisma.item.findMany({
-            where: {
-                userId: user.id,
-                OR: [
-                    {
-                        recurrence: 'NONE',
-                        date: {
-                            gte: windowStart,
-                            lte: windowEnd
-                        }
-                    },
-                    {
-                        recurrence: { not: 'NONE' },
-                        date: { lte: windowEnd }, // Must have started on or before the end of the window
-                    } // We could also filter out items where recurrenceEndDate < windowStart, but expandRecurringItems will filter them out anyway
-                ]
+            where: whereClause,
+            include: {
+                user: {
+                    select: {
+                        displayName: true,
+                        username: true
+                    }
+                }
             },
             orderBy: [{ priority: 'desc' }, { startTime: 'asc' }],
         });

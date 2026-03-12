@@ -12,8 +12,15 @@ export async function GET(req: NextRequest) {
 
     const { searchParams } = new URL(req.url);
     const dateStr = searchParams.get('date');
+    const adminRequestedUserId = searchParams.get('userId');
 
-    let whereClause: any = { userId: user.id };
+    let targetUserId = user.id;
+
+    if (user.role === 'ADMIN' && adminRequestedUserId) {
+        targetUserId = adminRequestedUserId;
+    }
+
+    let whereClause: any = { userId: targetUserId };
 
     if (dateStr) {
         const date = new Date(dateStr);
@@ -50,9 +57,18 @@ export async function POST(req: NextRequest) {
         }
 
         const itemData = result.data;
+        let targetUserId = user.id;
+
+        // If an Admin wants to create an item for another user, they can pass userId in the body.
+        // We assume CreateItemSchema will allow an optional userId field, or we bypass it explicitly.
+        // To keep it simple, we just check the raw body here before schema parsing, or rely on the body's userId.
+        if (user.role === 'ADMIN' && body.userId) {
+            targetUserId = body.userId;
+        }
+
         const newItem = await prisma.item.create({
             data: {
-                userId: user.id,
+                userId: targetUserId,
                 title: itemData.title,
                 type: itemData.type,
                 priority: itemData.priority,

@@ -1,0 +1,141 @@
+openapi: 3.0.3
+info:
+  title: MyDay API
+  description: API for the MyDay planner dashboard.
+  version: 1.0.0
+servers:
+  - url: /api
+    description: Local development server
+components:
+  securitySchemes:
+    SessionToken:
+      type: apiKey
+      in: header
+      name: X-Session-Token
+  schemas:
+    ItemType:
+      type: string
+      enum: [TASK, ASSIGNMENT, EVENT, MEETING, DEADLINE]
+    Priority:
+      type: string
+      enum: [ROUTINE, IMPORTANT, CRITICAL]
+    Recurrence:
+      type: string
+      enum: [NONE, DAILY, WEEKLY, MONTHLY]
+    Item:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        userId: { type: string, format: uuid }
+        title: { type: string }
+        type: { $ref: '#/components/schemas/ItemType' }
+        priority: { $ref: '#/components/schemas/Priority' }
+        date: { type: string, format: date-time }
+        startTime: { type: string, format: date-time, nullable: true }
+        endTime: { type: string, format: date-time, nullable: true }
+        location: { type: string, nullable: true }
+        joinUrl: { type: string, format: uri, nullable: true }
+        attendeeName: { type: string, nullable: true }
+        recurrence: { $ref: '#/components/schemas/Recurrence' }
+        recurrenceEndDate: { type: string, format: date-time, nullable: true }
+        notes: { type: string, nullable: true }
+        completedAt: { type: string, format: date-time, nullable: true }
+        createdAt: { type: string, format: date-time }
+paths:
+  /auth/signup:
+    post:
+      summary: Register a new user
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [username, password, displayName]
+              properties:
+                username: { type: string }
+                password: { type: string }
+                displayName: { type: string }
+      responses:
+        '200':
+          description: OK
+  /auth/login:
+    post:
+      summary: Authenticate a user
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [username, password]
+              properties:
+                username: { type: string }
+                password: { type: string }
+      responses:
+        '200':
+          description: OK
+  /items:
+    get:
+      summary: Get items
+      tags: [Items]
+      security: [{ SessionToken: [] }]
+      parameters:
+        - name: date
+          in: query
+          schema: { type: string, format: date }
+      responses:
+        '200':
+          description: List of items
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Item' }
+    post:
+      summary: Create an item
+      tags: [Items]
+      security: [{ SessionToken: [] }]
+      responses:
+        '201':
+          description: Created
+  /items/{id}:
+    patch:
+      summary: Update an item
+      tags: [Items]
+      security: [{ SessionToken: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Updated
+    delete:
+      summary: Delete an item
+      tags: [Items]
+      security: [{ SessionToken: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Deleted
+  /items/week:
+    get:
+      summary: Get items for the week
+      tags: [Items]
+      security: [{ SessionToken: [] }]
+      parameters:
+        - name: start
+          in: query
+          required: true
+          schema: { type: string, format: date }
+      responses:
+        '200':
+          description: List of items

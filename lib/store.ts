@@ -11,7 +11,13 @@ interface StoreState {
     deleteItem: (id: string) => void;
 
     sessionUser: any | null;
-    setSessionUser: (user: any) => void;
+    token: string | null;
+    setSessionUser: (user: any | null) => void;
+    login: (user: any, token: string) => void;
+    logout: () => void;
+
+    viewedUserId: string | null;
+    setViewedUserId: (id: string | null) => void;
 
     isAddSheetOpen: boolean;
     setIsAddSheetOpen: (open: boolean) => void;
@@ -34,8 +40,22 @@ export const useStore = create<StoreState>((set) => ({
         items: state.items.filter(item => item.id !== id)
     })),
 
-    sessionUser: null,
+    sessionUser: typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('myday_user') || 'null') : null,
+    token: typeof window !== 'undefined' ? localStorage.getItem('myday_session_token') : null,
     setSessionUser: (user) => set({ sessionUser: user }),
+    login: (user, token) => {
+        localStorage.setItem('myday_session_token', token);
+        localStorage.setItem('myday_user', JSON.stringify(user));
+        set({ sessionUser: user, token, viewedUserId: user.id });
+    },
+    logout: () => {
+        localStorage.removeItem('myday_session_token');
+        localStorage.removeItem('myday_user');
+        set({ sessionUser: null, token: null, viewedUserId: null, items: [] });
+    },
+
+    viewedUserId: typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('myday_user') || 'null')?.id : null,
+    setViewedUserId: (id) => set({ viewedUserId: id }),
 
     isAddSheetOpen: false,
     setIsAddSheetOpen: (open) => set({ isAddSheetOpen: open }),

@@ -94,7 +94,7 @@ export function ItemRow({ item, onToggle, onEdit }: ItemRowProps) {
                 </div>
 
                 {/* Secondary metadata */}
-                {(item.startTime || item.location || item.attendeeName) && (
+                {(item.startTime || item.location || item.attendeeName || item.user?.displayName) && (
                     <div
                         className="mt-0.5 flex items-center gap-1.5 text-[11px] font-mono"
                         style={{ color: 'var(--text-muted)' }}
@@ -109,6 +109,11 @@ export function ItemRow({ item, onToggle, onEdit }: ItemRowProps) {
                         )}
                         {item.location && <span>· {item.location}</span>}
                         {item.attendeeName && <span>· {item.attendeeName}</span>}
+                        {item.user?.displayName && (
+                            <span className="px-1.5 py-0.5 rounded bg-white/5 border border-white/10 ml-1" style={{ color: 'var(--accent)' }}>
+                                @{item.user.displayName}
+                            </span>
+                        )}
                     </div>
                 )}
             </div>

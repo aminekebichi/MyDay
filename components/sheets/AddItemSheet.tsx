@@ -45,6 +45,9 @@ export function AddItemSheet() {
     const addItem = useStore((state: any) => state.addItem);
     const updateItem = useStore((state: any) => state.updateItem);
     const deleteItem = useStore((state: any) => state.deleteItem);
+    const token = useStore((state: any) => state.token);
+    const viewedUserId = useStore((state: any) => state.viewedUserId);
+    const sessionUser = useStore((state: any) => state.sessionUser);
 
     const isOpen = isAddOpen || editingItem !== null;
     const isEditing = editingItem !== null;
@@ -141,6 +144,11 @@ export function AddItemSheet() {
         }
         if (notes.trim()) payload.notes = notes.trim();
 
+        // Admin override: specify target user if viewing someone else
+        if (sessionUser?.role === 'ADMIN' && viewedUserId && viewedUserId !== sessionUser.id) {
+            payload.userId = viewedUserId;
+        }
+
         return payload;
     };
 
@@ -165,7 +173,7 @@ export function AddItemSheet() {
                     method: 'PATCH',
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-Session-Token': 'usr_test_123',
+                        'X-Session-Token': token || '',
                     },
                     body: JSON.stringify(payload),
                 });

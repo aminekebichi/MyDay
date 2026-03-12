@@ -20,8 +20,13 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
         const { id } = params;
 
         const existing = await prisma.item.findUnique({ where: { id } });
-        if (!existing || existing.userId !== user.id) {
+        if (!existing) {
             return NextResponse.json({ error: 'Item not found', code: 'NOT_FOUND' }, { status: 404 });
+        }
+
+        // Allow if user is owner OR user is an ADMIN
+        if (existing.userId !== user.id && user.role !== 'ADMIN') {
+            return NextResponse.json({ error: 'Unauthorized', code: 'UNAUTHORIZED' }, { status: 401 });
         }
 
         const {
@@ -57,8 +62,13 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
         const { id } = params;
 
         const existing = await prisma.item.findUnique({ where: { id } });
-        if (!existing || existing.userId !== user.id) {
+        if (!existing) {
             return NextResponse.json({ error: 'Item not found', code: 'NOT_FOUND' }, { status: 404 });
+        }
+
+        // Allow if user is owner OR user is an ADMIN
+        if (existing.userId !== user.id && user.role !== 'ADMIN') {
+            return NextResponse.json({ error: 'Unauthorized', code: 'UNAUTHORIZED' }, { status: 401 });
         }
 
         await prisma.item.delete({ where: { id } });
