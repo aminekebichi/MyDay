@@ -63,13 +63,38 @@ Every interaction — adding a task, marking something complete, or logging a ne
 
 ## Tech Stack
 
-*To be determined.*
+- **Framework:** Next.js 14.x (App Router)
+- **Language:** TypeScript
+- **Styling:** Tailwind CSS 3.x + CSS custom properties
+- **State Management:** Zustand
+- **Data Fetching:** SWR
+- **Database:** SQLite via Prisma ORM
+- **Animations:** Framer Motion
 
 ---
 
 ## Getting Started
 
-*Instructions will be added once the project scaffolding is in place.*
+To get the project running locally, follow these steps:
+
+1. **Install dependencies:**
+   ```bash
+   npm install
+   ```
+
+2. **Initialize and seed the database with sample data:**
+   ```bash
+   npx prisma db seed
+   ```
+   *(This script automatically creates a test user and generates a set of robust sample tasks, meetings, and deadlines for the current week).*
+
+3. **Start the development server:**
+   ```bash
+   npm run dev
+   ```
+
+4. **View the app:**
+   Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ---
 
