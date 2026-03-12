@@ -1,9 +1,9 @@
 export const CATEGORY_COLORS = {
-    TASK: { dark: '#4A5A7A', light: '#6A7A9A' },
-    ASSIGNMENT: { dark: '#7A5030', light: '#9A7050' },
-    EVENT: { dark: '#2A5A3A', light: '#3A7A5A' },
-    MEETING: { dark: '#3A4A5A', light: '#5A6A7A' },
-    DEADLINE: { dark: '#7A3A2A', light: '#9A5040' },
+    TASK:       { dark: '#4A72A8', light: '#5A82B8' }, // steel blue
+    ASSIGNMENT: { dark: '#1A8A9A', light: '#2A9AAA' }, // teal
+    EVENT:      { dark: '#2E7D5A', light: '#3A9A6E' }, // forest green
+    MEETING:    { dark: '#7A4EA8', light: '#9060C0' }, // violet purple
+    DEADLINE:   { dark: '#A03828', light: '#B84838' }, // warm rust red
 } as const;
 
 export const PRIORITY_COLORS = {

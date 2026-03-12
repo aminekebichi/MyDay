@@ -23,7 +23,7 @@ export function ItemRow({ item, onToggle, onEdit }: ItemRowProps) {
     };
 
     return (
-        <div className="flex items-start gap-1 px-4 py-1 border-b group" style={{ borderColor: 'var(--border)' }}>
+        <div className="flex items-start gap-1 px-4 py-1 border-b" style={{ borderColor: 'var(--border)' }}>
             {/* Checkbox — 44×44 touch target (WCAG 2.5.5) */}
             <button
                 type="button"
@@ -71,7 +71,26 @@ export function ItemRow({ item, onToggle, onEdit }: ItemRowProps) {
                     >
                         {item.title}
                     </span>
-                    <PriorityBadge priority={item.priority} />
+                    <div className="flex items-center gap-2 flex-none">
+                        <PriorityBadge priority={item.priority} />
+                        <button
+                            type="button"
+                            onClick={() => onEdit(item)}
+                            aria-label={`Edit "${item.title}"`}
+                            className="flex items-center justify-center w-[28px] h-[28px]"
+                            style={{ color: 'var(--text-muted)' }}
+                        >
+                            <svg width="12" height="12" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                                <path
+                                    d="M9.5 1.5L12.5 4.5L4.5 12.5H1.5V9.5L9.5 1.5Z"
+                                    stroke="currentColor"
+                                    strokeWidth="1.2"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                />
+                            </svg>
+                        </button>
+                    </div>
                 </div>
 
                 {/* Secondary metadata */}
@@ -94,24 +113,7 @@ export function ItemRow({ item, onToggle, onEdit }: ItemRowProps) {
                 )}
             </div>
 
-            {/* Edit button — visible on hover, right side */}
-            <button
-                type="button"
-                onClick={() => onEdit(item)}
-                aria-label={`Edit "${item.title}"`}
-                className="flex-none flex items-center justify-center w-[44px] h-[44px] -mr-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                style={{ color: 'var(--text-muted)' }}
-            >
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-                    <path
-                        d="M9.5 1.5L12.5 4.5L4.5 12.5H1.5V9.5L9.5 1.5Z"
-                        stroke="currentColor"
-                        strokeWidth="1.2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                    />
-                </svg>
-            </button>
+
         </div>
     );
 }

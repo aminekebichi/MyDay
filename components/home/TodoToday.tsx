@@ -84,9 +84,6 @@ export function TodoToday() {
                     <p className="font-caveat text-xl" style={{ color: 'var(--text-muted)' }}>
                         Nothing scheduled.
                     </p>
-                    <p className="font-caveat text-base mt-1" style={{ color: 'var(--text-muted)' }}>
-                        Tap + to add something.
-                    </p>
                 </div>
             ) : (
                 <ul>
