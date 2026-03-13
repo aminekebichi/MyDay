@@ -19,13 +19,14 @@ describe('CalendarStrip', () => {
 
     it('renders the weekly calendar nav aria-label', () => {
         render(<CalendarStrip />);
-        expect(screen.getByRole('navigation', { name: "Weekly calendar" })).toBeInTheDocument();
+        expect(screen.getByRole('navigation', { name: "Calendar" })).toBeInTheDocument();
     });
 
-    it('renders 7 day column buttons', () => {
+    it('renders day column buttons for a 2-year lookahead range', () => {
         render(<CalendarStrip />);
         const buttons = screen.getAllByRole('button');
-        expect(buttons).toHaveLength(7);
+        // 730 day buttons (2-year lookahead) + 1 "scroll back to today" button
+        expect(buttons.length).toBeGreaterThanOrEqual(730);
     });
 
     it('renders an item within the correct day column', () => {

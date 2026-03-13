@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cd \"C:\\\\Users\\\\amine\\\\OneDrive\\\\Documents\\\\git_workspace\\\\MyDay\" && npm run test 2>&1 | tail -80)",
+      "Bash(cd \"C:\\\\Users\\\\amine\\\\OneDrive\\\\Documents\\\\git_workspace\\\\MyDay\" && npm run test 2>&1 | head -150)",
+      "Bash(cd \"C:\\\\Users\\\\amine\\\\OneDrive\\\\Documents\\\\git_workspace\\\\MyDay\" && npm run test 2>&1 | grep -E \"^\\( ✓| ❯| ×|FAIL|PASS|Test Files|Tests \\)\" 2>&1)",
+      "Bash(cd \"C:\\\\Users\\\\amine\\\\OneDrive\\\\Documents\\\\git_workspace\\\\MyDay\" && npx vitest run --reporter=verbose 2>&1 | grep -v \"Warning:\" | grep -v \"at \" | grep -v \"wrap-tests\" | grep -v \"act\\(\" | grep -v \"This ensures\" | grep -v \"reactjs.org\" | grep -v \"^$\" | grep -v \"learn more\" 2>&1 | tail -100)",
+      "Bash(cd \"C:\\\\Users\\\\amine\\\\OneDrive\\\\Documents\\\\git_workspace\\\\MyDay\" && npx vitest run lib/session.test.ts 2>&1 | tail -40)",
+      "Bash(cd \"C:\\\\Users\\\\amine\\\\OneDrive\\\\Documents\\\\git_workspace\\\\MyDay\" && npx vitest run app/api/auth/login/route.test.ts 2>&1 | tail -40)",
+      "Bash(cd \"C:\\\\Users\\\\amine\\\\OneDrive\\\\Documents\\\\git_workspace\\\\MyDay\" && npx vitest run components/home/CalendarStrip.test.tsx 2>&1 | tail -30)",
+      "Bash(cd \"C:\\\\Users\\\\amine\\\\OneDrive\\\\Documents\\\\git_workspace\\\\MyDay\" && npm run test 2>&1 | grep -E \"\\(✓|❯|×|FAIL|PASS|Test Files|Tests |Failed\\)\" | head -40)",
+      "Bash(cd \"C:\\\\Users\\\\amine\\\\OneDrive\\\\Documents\\\\git_workspace\\\\MyDay\" && npx vitest run components/home/CalendarStrip.test.tsx 2>&1 | grep -A 10 \"CalendarStrip.tsx\")",
+      "Bash(cd \"C:\\\\Users\\\\amine\\\\OneDrive\\\\Documents\\\\git_workspace\\\\MyDay\" && npm run test 2>&1 | grep -E \"\\(✓|❯|×|Test Files|Tests \\)\" | head -30)",
+      "Bash(cd \"C:\\\\Users\\\\amine\\\\OneDrive\\\\Documents\\\\git_workspace\\\\MyDay\" && npx vitest run components/home/CalendarStrip.test.tsx 2>&1 | grep -A 20 \"renders 7 day\")",
+      "Bash(cd \"C:\\\\Users\\\\amine\\\\OneDrive\\\\Documents\\\\git_workspace\\\\MyDay\" && npm run test 2>&1 | grep -E \"\\(Test Files|Tests \\)\")",
+      "Bash(cd \"C:\\\\Users\\\\amine\\\\OneDrive\\\\Documents\\\\git_workspace\\\\MyDay\" && npm run test:coverage 2>&1 | tail -60)",
+      "Bash(cd \"C:\\\\Users\\\\amine\\\\OneDrive\\\\Documents\\\\git_workspace\\\\MyDay\" && npm run test:coverage 2>&1 | grep -E \"\\(ERROR|Test Files|Tests |✓|❯|×\\)\" | head -30)",
+      "Bash(cd \"C:\\\\Users\\\\amine\\\\OneDrive\\\\Documents\\\\git_workspace\\\\MyDay\" && npm run test:coverage 2>&1 | grep -E \"\\(ERROR|Test Files|Tests \\)\" | tail -10)",
+      "Bash(cd \"C:\\\\Users\\\\amine\\\\OneDrive\\\\Documents\\\\git_workspace\\\\MyDay\" && npm run test:coverage 2>&1 | grep -E \"\\(ERROR|lines|functions|branches|statements|All files\\)\" | tail -20)"
+    ]
+  }
+}

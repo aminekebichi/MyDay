@@ -6,8 +6,16 @@ afterEach(() => {
     cleanup()
 })
 
+// ResizeObserver is not implemented in jsdom
+global.ResizeObserver = class ResizeObserver {
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+}
+
 // Mock window.matchMedia for Framer Motion / responsiveness checks
-Object.defineProperty(window, 'matchMedia', {
+// Guard against node environment (e.g. API route tests with @vitest-environment node)
+if (typeof window !== 'undefined') Object.defineProperty(window, 'matchMedia', {
     writable: true,
     value: vi.fn().mockImplementation(query => ({
         matches: false,
