@@ -69,7 +69,19 @@ Every interaction — adding a task, marking something complete, or logging a ne
 
 ## Getting Started
 
-*Instructions will be added once the project scaffolding is in place.*
+1. **Install dependencies**: `npm install`
+2. **Setup database**: `npx prisma db push`
+3. **Seed data**: `npx prisma db seed`
+4. **Run dev server**: `npm run dev`
+
+### Test Accounts
+
+| Role | Username | Password |
+|---|---|---|
+| **Admin** | `admin` | `admin` |
+| **User (Amine)** | `amine` | `admin` |
+| **User (Sarah)** | `sarah` | `sarah` |
+| **User (Bob)** | `bob` | `bob` |
 
 ---
 

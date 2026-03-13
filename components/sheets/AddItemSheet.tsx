@@ -3,6 +3,9 @@
 import { useState, useEffect, useRef } from 'react';
 import { format, parseISO } from 'date-fns';
 import { useStore } from '../../lib/store';
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
+import { Label } from "../ui/label";
 
 type ItemType = 'TASK' | 'ASSIGNMENT' | 'EVENT' | 'MEETING' | 'DEADLINE';
 type Priority = 'ROUTINE' | 'IMPORTANT' | 'CRITICAL';
@@ -35,16 +38,17 @@ const inputStyle: React.CSSProperties = {
     border: '1px solid var(--border)',
 };
 
-// Implements #10: Add Item bottom sheet — context-sensitive fields per type
-// Also handles editing existing items when editingItem is set in the store
 export function AddItemSheet() {
-    const isAddOpen = useStore((state: any) => state.isAddSheetOpen);
-    const setIsAddOpen = useStore((state: any) => state.setIsAddSheetOpen);
-    const editingItem = useStore((state: any) => state.editingItem);
-    const setEditingItem = useStore((state: any) => state.setEditingItem);
-    const addItem = useStore((state: any) => state.addItem);
-    const updateItem = useStore((state: any) => state.updateItem);
-    const deleteItem = useStore((state: any) => state.deleteItem);
+    const isAddOpen = useStore((state) => state.isAddSheetOpen);
+    const setIsAddOpen = useStore((state) => state.setIsAddSheetOpen);
+    const editingItem = useStore((state) => state.editingItem);
+    const setEditingItem = useStore((state) => state.setEditingItem);
+    const addItem = useStore((state) => state.addItem);
+    const updateItem = useStore((state) => state.updateItem);
+    const deleteItem = useStore((state) => state.deleteItem);
+    const sessionUser = useStore((state) => state.sessionUser);
+    const token = useStore((state) => state.token);
+    const viewedUserId = useStore((state) => state.viewedUserId);
 
     const isOpen = isAddOpen || editingItem !== null;
     const isEditing = editingItem !== null;
@@ -77,7 +81,6 @@ export function AddItemSheet() {
         setEditingItem(null);
     };
 
-    // Populate form when sheet opens
     useEffect(() => {
         if (!isOpen) return;
         if (isEditing) {
@@ -94,7 +97,6 @@ export function AddItemSheet() {
             setJoinUrl(item.joinUrl ?? '');
             setAttendeeName(item.attendeeName ?? '');
             setNotes(item.notes ?? '');
-            setShowNotes(!!item.notes);
         } else {
             setType('TASK');
             setTitle('');
@@ -108,13 +110,11 @@ export function AddItemSheet() {
             setJoinUrl('');
             setAttendeeName('');
             setNotes('');
-            setShowNotes(false);
         }
         setError(null);
         setIsSubmitting(false);
         setTimeout(() => titleRef.current?.focus(), 50);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isOpen]);
+    }, [isOpen, isEditing, editingItem]);
 
     const canSave = title.trim().length > 0 && date.length > 0 && !isSubmitting;
 
@@ -141,6 +141,11 @@ export function AddItemSheet() {
         }
         if (notes.trim()) payload.notes = notes.trim();
 
+        // Admin support: create for viewed user if not 'all'
+        if (sessionUser?.role === 'ADMIN' && viewedUserId && viewedUserId !== 'all' && viewedUserId !== sessionUser?.id) {
+            payload.userId = viewedUserId;
+        }
+
         return payload;
     };
 
@@ -154,9 +159,7 @@ export function AddItemSheet() {
         const payload = buildPayload();
 
         if (isEditing) {
-            // — Edit flow —
             const previous = { ...editingItem };
-            // Optimistic update
             updateItem(editingItem.id, payload);
             close();
 
@@ -165,7 +168,7 @@ export function AddItemSheet() {
                     method: 'PATCH',
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-Session-Token': 'usr_test_123',
+                        'X-Session-Token': token || "",
                     },
                     body: JSON.stringify(payload),
                 });
@@ -178,14 +181,12 @@ export function AddItemSheet() {
                 const updated = await res.json();
                 updateItem(editingItem.id, updated);
             } catch (err) {
-                // Rollback
                 updateItem(previous.id, previous);
                 setIsSubmitting(false);
                 setEditingItem(previous);
                 setError(err instanceof Error ? err.message : 'Something went wrong. Please try again.');
             }
         } else {
-            // — Add flow —
             const tempId = `temp_${Date.now()}`;
             addItem({ id: tempId, ...payload, completedAt: null, createdAt: new Date().toISOString() });
             close();
@@ -195,7 +196,7 @@ export function AddItemSheet() {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-Session-Token': 'usr_test_123',
+                        'X-Session-Token': token || "",
                     },
                     body: JSON.stringify(payload),
                 });
@@ -221,95 +222,46 @@ export function AddItemSheet() {
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            {/* Backdrop */}
-            <div
-                className="absolute inset-0 bg-black/60"
-                onClick={close}
-                aria-hidden="true"
-            />
-
-            {/* Dialog panel */}
+            <div className="absolute inset-0 bg-black/60" onClick={close} aria-hidden="true" />
             <div
                 role="dialog"
                 aria-modal="true"
-                aria-label={isEditing ? 'Edit item' : 'Add item to MyDay'}
-                className="relative w-full rounded-2xl flex flex-col"
+                className="relative w-full rounded-2xl flex flex-col overflow-hidden"
                 style={{
                     backgroundColor: 'var(--bg-elevated)',
-                    maxWidth: 672,
+                    maxWidth: 500,
                     maxHeight: '90vh',
                     border: '1px solid var(--border)',
                 }}
             >
-                {/* Header */}
-                <div
-                    className="flex items-center justify-between px-4 py-3 border-b flex-none"
-                    style={{ borderColor: 'var(--border)' }}
-                >
-                    <h2
-                        className="text-base font-instrument"
-                        style={{ color: 'var(--text-primary)' }}
-                    >
+                <div className="flex items-center justify-between px-4 py-3 border-b flex-none" style={{ borderColor: 'var(--border)' }}>
+                    <h2 className="text-base font-instrument" style={{ color: 'var(--text-primary)' }}>
                         {isEditing ? 'Edit item' : 'Add to MyDay'}
                     </h2>
-                    <button
-                        type="button"
-                        onClick={close}
-                        aria-label="Close sheet"
-                        className="flex items-center justify-center w-[44px] h-[44px] -mr-2 rounded-xl text-lg"
-                        style={{ color: 'var(--text-muted)' }}
-                    >
-                        ✕
-                    </button>
+                    <button onClick={close} className="text-muted p-2" style={{ color: 'var(--text-muted)' }}>✕</button>
                 </div>
 
-                {/* Form */}
-                <form
-                    id="add-item-form"
-                    onSubmit={handleSubmit}
-                    className="flex flex-col flex-1 overflow-hidden"
-                >
-                    {/* Scrollable fields */}
-                    <div className="overflow-y-auto flex-1 pb-2">
-
+                <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
+                    <div className="overflow-y-auto flex-1 p-4 space-y-4">
                         {error && (
-                            <div
-                                className="mx-4 mt-3 px-3 py-2 rounded-lg text-sm font-mono"
-                                style={{
-                                    backgroundColor: '#8A3A3A22',
-                                    color: '#C87070',
-                                    border: '1px solid #8A3A3A',
-                                }}
-                            >
+                            <div className="px-3 py-2 rounded bg-red-500/10 border border-red-500/20 text-red-500 text-xs font-mono">
                                 {error}
                             </div>
                         )}
 
-                        {/* Type selector */}
-                        <div className="px-4 pt-4">
-                            <p
-                                className="text-xs uppercase tracking-wide mb-2 font-mono"
-                                style={{ color: 'var(--text-muted)' }}
-                            >
-                                Type
-                            </p>
-                            <div
-                                className="flex gap-1.5 flex-wrap"
-                                role="group"
-                                aria-label="Item type"
-                            >
+                        <div>
+                            <p className="text-[10px] uppercase tracking-wider mb-2 font-mono" style={{ color: 'var(--text-muted)' }}>Type</p>
+                            <div className="flex gap-1.5 flex-wrap">
                                 {ITEM_TYPES.map(({ value, label }) => (
                                     <button
                                         key={value}
                                         type="button"
                                         onClick={() => setType(value)}
-                                        aria-pressed={type === value}
-                                        className="px-3 py-1.5 rounded-lg text-xs font-mono transition-colors"
-                                        style={{
-                                            backgroundColor:
-                                                type === value ? 'var(--accent)' : 'var(--bg-surface)',
-                                            color: type === value ? '#fff' : 'var(--text-muted)',
-                                            border: `1px solid ${type === value ? 'var(--accent)' : 'var(--border)'}`,
+                                        className={`px-3 py-1 rounded-md text-[11px] font-mono border transition-all ${type === value ? 'bg-accent text-white border-accent' : 'bg-surface text-muted border-border'}`}
+                                        style={{ 
+                                            backgroundColor: type === value ? 'var(--accent)' : 'var(--bg-surface)',
+                                            borderColor: type === value ? 'var(--accent)' : 'var(--border)',
+                                            color: type === value ? 'white' : 'var(--text-muted)'
                                         }}
                                     >
                                         {label}
@@ -318,178 +270,107 @@ export function AddItemSheet() {
                             </div>
                         </div>
 
-                        {/* Title */}
-                        <div className="px-4 pt-4">
-                            <label
-                                htmlFor="item-title"
-                                className="block text-xs uppercase tracking-wide mb-2 font-mono"
-                                style={{ color: 'var(--text-muted)' }}
-                            >
-                                Title
-                            </label>
-                            <input
+                        <div>
+                            <Label className="text-[10px] uppercase font-mono mb-2 block" style={{ color: 'var(--text-muted)' }}>Title</Label>
+                            <Input
                                 ref={titleRef}
-                                id="item-title"
-                                type="text"
                                 value={title}
                                 onChange={(e) => setTitle(e.target.value)}
-                                placeholder="What's on your plate?"
-                                required
-                                className="w-full px-3 py-2.5 rounded-lg text-sm font-mono outline-none"
+                                placeholder="What's happening?"
                                 style={inputStyle}
+                                className="font-mono text-sm"
                             />
                         </div>
 
-                        {/* Date */}
-                        <div className="px-4 pt-4">
-                            <label
-                                htmlFor="item-date"
-                                className="block text-xs uppercase tracking-wide mb-2 font-mono"
-                                style={{ color: 'var(--text-muted)' }}
-                            >
-                                Date
-                            </label>
-                            <input
-                                id="item-date"
-                                type="date"
-                                value={date}
-                                onChange={(e) => setDate(e.target.value)}
-                                required
-                                className="w-full px-3 py-2.5 rounded-lg text-sm font-mono outline-none"
-                                style={{ ...inputStyle, colorScheme: 'dark' }}
-                            />
+                        <div className="flex gap-3">
+                            <div className="flex-1">
+                                <Label className="text-[10px] uppercase font-mono mb-2 block" style={{ color: 'var(--text-muted)' }}>Date</Label>
+                                <Input
+                                    type="date"
+                                    value={date}
+                                    onChange={(e) => setDate(e.target.value)}
+                                    style={{ ...inputStyle, colorScheme: 'dark' }}
+                                    className="font-mono text-xs"
+                                />
+                            </div>
                         </div>
 
-                        {/* Start + End Time — EVENT and MEETING only */}
                         {showTimeFields && (
-                            <div className="px-4 pt-4 flex gap-3">
+                            <div className="flex gap-3">
                                 <div className="flex-1">
-                                    <label
-                                        htmlFor="item-start-time"
-                                        className="block text-xs uppercase tracking-wide mb-2 font-mono"
-                                        style={{ color: 'var(--text-muted)' }}
-                                    >
-                                        Start
-                                    </label>
-                                    <input
-                                        id="item-start-time"
+                                    <Label className="text-[10px] uppercase font-mono mb-2 block" style={{ color: 'var(--text-muted)' }}>Start</Label>
+                                    <Input
                                         type="time"
                                         value={startTime}
                                         onChange={(e) => setStartTime(e.target.value)}
-                                        className="w-full px-3 py-2.5 rounded-lg text-sm font-mono outline-none"
                                         style={{ ...inputStyle, colorScheme: 'dark' }}
+                                        className="font-mono text-xs"
                                     />
                                 </div>
                                 <div className="flex-1">
-                                    <label
-                                        htmlFor="item-end-time"
-                                        className="block text-xs uppercase tracking-wide mb-2 font-mono"
-                                        style={{ color: 'var(--text-muted)' }}
-                                    >
-                                        End
-                                    </label>
-                                    <input
-                                        id="item-end-time"
+                                    <Label className="text-[10px] uppercase font-mono mb-2 block" style={{ color: 'var(--text-muted)' }}>End</Label>
+                                    <Input
                                         type="time"
                                         value={endTime}
                                         onChange={(e) => setEndTime(e.target.value)}
-                                        className="w-full px-3 py-2.5 rounded-lg text-sm font-mono outline-none"
                                         style={{ ...inputStyle, colorScheme: 'dark' }}
+                                        className="font-mono text-xs"
                                     />
                                 </div>
                             </div>
                         )}
 
-                        {/* Location — EVENT and MEETING only */}
                         {showLocationField && (
-                            <div className="px-4 pt-4">
-                                <label
-                                    htmlFor="item-location"
-                                    className="block text-xs uppercase tracking-wide mb-2 font-mono"
-                                    style={{ color: 'var(--text-muted)' }}
-                                >
-                                    Location
-                                </label>
-                                <input
-                                    id="item-location"
-                                    type="text"
+                            <div>
+                                <Label className="text-[10px] uppercase font-mono mb-2 block" style={{ color: 'var(--text-muted)' }}>Location</Label>
+                                <Input
                                     value={location}
                                     onChange={(e) => setLocation(e.target.value)}
-                                    placeholder="Room 204 or 123 Main St"
-                                    className="w-full px-3 py-2.5 rounded-lg text-sm font-mono outline-none"
+                                    placeholder="Where at?"
                                     style={inputStyle}
+                                    className="font-mono text-xs"
                                 />
                             </div>
                         )}
 
-                        {/* Join URL — MEETING only */}
                         {showJoinUrlField && (
-                            <div className="px-4 pt-4">
-                                <label
-                                    htmlFor="item-join-url"
-                                    className="block text-xs uppercase tracking-wide mb-2 font-mono"
-                                    style={{ color: 'var(--text-muted)' }}
-                                >
-                                    Join Link
-                                </label>
-                                <input
-                                    id="item-join-url"
-                                    type="url"
+                            <div>
+                                <Label className="text-[10px] uppercase font-mono mb-2 block" style={{ color: 'var(--text-muted)' }}>Join URL</Label>
+                                <Input
                                     value={joinUrl}
                                     onChange={(e) => setJoinUrl(e.target.value)}
-                                    placeholder="https://meet.google.com/..."
-                                    className="w-full px-3 py-2.5 rounded-lg text-sm font-mono outline-none"
+                                    placeholder="Meeting link"
                                     style={inputStyle}
+                                    className="font-mono text-xs"
                                 />
                             </div>
                         )}
 
-                        {/* Attendee Name — MEETING only */}
                         {showAttendeeField && (
-                            <div className="px-4 pt-4">
-                                <label
-                                    htmlFor="item-attendee"
-                                    className="block text-xs uppercase tracking-wide mb-2 font-mono"
-                                    style={{ color: 'var(--text-muted)' }}
-                                >
-                                    Attendee
-                                </label>
-                                <input
-                                    id="item-attendee"
-                                    type="text"
+                            <div>
+                                <Label className="text-[10px] uppercase font-mono mb-2 block" style={{ color: 'var(--text-muted)' }}>Attendee</Label>
+                                <Input
                                     value={attendeeName}
                                     onChange={(e) => setAttendeeName(e.target.value)}
                                     placeholder="Name"
-                                    className="w-full px-3 py-2.5 rounded-lg text-sm font-mono outline-none"
                                     style={inputStyle}
+                                    className="font-mono text-xs"
                                 />
                             </div>
                         )}
 
-                        {/* Priority */}
-                        <div className="px-4 pt-4">
-                            <p
-                                className="text-xs uppercase tracking-wide mb-2 font-mono"
-                                style={{ color: 'var(--text-muted)' }}
-                            >
-                                Priority
-                            </p>
-                            <div className="flex gap-1.5" role="group" aria-label="Priority">
+                        <div>
+                            <p className="text-[10px] uppercase tracking-wider mb-2 font-mono" style={{ color: 'var(--text-muted)' }}>Priority</p>
+                            <div className="flex gap-2">
                                 {PRIORITIES.map(({ value, label }) => (
                                     <button
                                         key={value}
                                         type="button"
                                         onClick={() => setPriority(value)}
-                                        aria-pressed={priority === value}
-                                        className="flex-1 py-2 rounded-lg text-xs font-mono transition-colors"
-                                        style={{
-                                            backgroundColor:
-                                                priority === value ? 'var(--bg-surface)' : 'transparent',
-                                            color:
-                                                priority === value
-                                                    ? 'var(--text-primary)'
-                                                    : 'var(--text-muted)',
-                                            border: `1px solid ${priority === value ? 'var(--accent)' : 'var(--border)'}`,
+                                        className={`flex-1 py-1.5 rounded-md text-[11px] font-mono border transition-all ${priority === value ? 'border-accent bg-accent/10 text-primary' : 'border-border bg-surface text-muted'}`}
+                                        style={{ 
+                                            borderColor: priority === value ? 'var(--accent)' : 'var(--border)',
+                                            color: priority === value ? 'var(--text-primary)' : 'var(--text-muted)'
                                         }}
                                     >
                                         {label}
@@ -497,54 +378,34 @@ export function AddItemSheet() {
                                 ))}
                             </div>
                         </div>
-
-                        {/* Recurrence */}
-                        <div className="px-4 pt-4">
-                            <label
-                                htmlFor="item-recurrence"
-                                className="block text-xs uppercase tracking-wide mb-2 font-mono"
-                                style={{ color: 'var(--text-muted)' }}
-                            >
-                                Repeat
-                            </label>
+                        <div>
+                            <Label className="text-[10px] uppercase font-mono mb-2 block" style={{ color: 'var(--text-muted)' }}>Repeat</Label>
                             <select
-                                id="item-recurrence"
                                 value={recurrence}
                                 onChange={(e) => setRecurrence(e.target.value as Recurrence)}
-                                className="w-full px-3 py-2.5 rounded-lg text-sm font-mono outline-none appearance-none"
-                                style={inputStyle}
+                                className="w-full px-3 py-2 rounded-lg text-xs font-mono outline-none appearance-none"
+                                style={{ ...inputStyle, colorScheme: 'dark' }}
                             >
                                 {RECURRENCES.map(({ value, label }) => (
-                                    <option key={value} value={value}>
-                                        {label}
-                                    </option>
+                                    <option key={value} value={value}>{label}</option>
                                 ))}
                             </select>
                         </div>
 
-                        {/* Recurrence end date — only when recurrence is active */}
                         {recurrence !== 'NONE' && (
-                            <div className="px-4 pt-3">
-                                <label
-                                    htmlFor="item-recurrence-end"
-                                    className="block text-xs uppercase tracking-wide mb-2 font-mono"
-                                    style={{ color: 'var(--text-muted)' }}
-                                >
-                                    Repeat Until (optional)
-                                </label>
-                                <input
-                                    id="item-recurrence-end"
+                            <div>
+                                <Label className="text-[10px] uppercase font-mono mb-2 block" style={{ color: 'var(--text-muted)' }}>Repeat Until (optional)</Label>
+                                <Input
                                     type="date"
                                     value={recurrenceEndDate}
                                     onChange={(e) => setRecurrenceEndDate(e.target.value)}
-                                    className="w-full px-3 py-2.5 rounded-lg text-sm font-mono outline-none"
                                     style={{ ...inputStyle, colorScheme: 'dark' }}
+                                    className="font-mono text-xs"
                                 />
                             </div>
                         )}
 
-                        {/* Notes — collapsed by default */}
-                        <div className="px-4 pt-4 pb-2">
+                        <div>
                             <button
                                 type="button"
                                 onClick={() => setShowNotes(!showNotes)}
@@ -562,43 +423,23 @@ export function AddItemSheet() {
                                     onChange={(e) => setNotes(e.target.value)}
                                     placeholder="Any additional details..."
                                     rows={3}
-                                    className="w-full mt-2 px-3 py-2.5 rounded-lg text-sm font-mono outline-none resize-none"
+                                    className="w-full mt-2 px-3 py-2 rounded-lg text-xs font-mono outline-none resize-none"
                                     style={inputStyle}
                                 />
                             )}
                         </div>
                     </div>
 
-                    {/* Footer — Save + Cancel */}
-                    <div
-                        className="px-4 py-4 border-t flex gap-3 flex-none"
-                        style={{ borderColor: 'var(--border)', backgroundColor: 'var(--bg-elevated)' }}
-                    >
-                        <button
-                            type="button"
-                            onClick={close}
-                            className="flex-1 py-3 rounded-xl text-sm font-mono transition-colors"
-                            style={{
-                                backgroundColor: 'var(--bg-surface)',
-                                color: 'var(--text-muted)',
-                                border: '1px solid var(--border)',
-                            }}
+                    <div className="p-4 border-t flex gap-3 flex-none" style={{ borderColor: 'var(--border)', backgroundColor: 'var(--bg-elevated)' }}>
+                        <Button variant="outline" onClick={close} className="flex-1" style={{ borderColor: 'var(--border)', color: 'var(--text-muted)' }}>Cancel</Button>
+                        <Button 
+                            disabled={!canSave} 
+                            onClick={handleSubmit} 
+                            className="flex-1" 
+                            style={{ backgroundColor: canSave ? 'var(--accent)' : 'var(--border)', color: 'white' }}
                         >
-                            Cancel
-                        </button>
-                        <button
-                            type="submit"
-                            disabled={!canSave}
-                            className="flex-1 py-3 rounded-xl text-sm font-mono transition-all"
-                            style={{
-                                backgroundColor: canSave ? 'var(--accent)' : 'var(--bg-surface)',
-                                color: canSave ? '#fff' : 'var(--text-muted)',
-                                opacity: canSave ? 1 : 0.5,
-                                cursor: canSave ? 'pointer' : 'not-allowed',
-                            }}
-                        >
-                            {isSubmitting ? 'Saving…' : isEditing ? 'Update' : 'Save'}
-                        </button>
+                            {isSubmitting ? 'Saving...' : isEditing ? 'Update' : 'Save'}
+                        </Button>
                     </div>
                 </form>
             </div>
