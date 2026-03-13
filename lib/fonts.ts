@@ -1,17 +1,16 @@
-import { Instrument_Serif, Geist_Mono, Caveat } from 'next/font/google';
+import localFont from 'next/font/local';
+import { Instrument_Serif, Caveat } from 'next/font/google';
 
-export const instrumentSerif = Instrument_Serif({
-    subsets: ['latin'],
-    weight: '400',
-    variable: '--font-instrument',
+export const instrumentSerif = Instrument_Serif({ 
+  subsets: ['latin'], 
+  weight: '400' 
 });
 
-export const geistMono = Geist_Mono({
-    subsets: ['latin'],
-    variable: '--font-geist-mono',
+export const caveat = Caveat({ 
+  subsets: ['latin'] 
 });
 
-export const caveat = Caveat({
-    subsets: ['latin'],
-    variable: '--font-caveat',
+export const geistMono = localFont({
+  src: '../node_modules/geist/dist/fonts/geist-mono/GeistMono-Regular.woff2',
+  variable: '--font-geist-mono',
 });

@@ -1,113 +1,94 @@
-const { PrismaClient } = require('@prisma/client')
-const { addDays, startOfDay, subDays } = require('date-fns')
-const { randomUUID } = require('crypto')
-
-const prisma = new PrismaClient()
+const { PrismaClient } = require('@prisma/client');
+const prisma = new PrismaClient();
+const bcrypt = require('bcryptjs');
+const { addDays, startOfDay } = require('date-fns');
 
 async function main() {
-    console.log("Cleaning database...")
-    await prisma.item.deleteMany()
-    await prisma.user.deleteMany()
+    console.log('Cleaning database...');
+    await prisma.item.deleteMany({});
+    await prisma.user.deleteMany({});
 
-    console.log("Creating test user...")
-    const user = await prisma.user.create({
+    console.log('Creating users...');
+    const adminHash = bcrypt.hashSync('admin', 10);
+    const sarahHash = bcrypt.hashSync('sarah', 10);
+    const bobHash = bcrypt.hashSync('bob', 10);
+
+    const amine = await prisma.user.create({
         data: {
-            id: 'usr_test_123',
-            displayName: 'Alex',
-            sessionToken: 'usr_test_123',
-            theme: 'dark'
+            id: 'usr_amine_123',
+            displayName: 'Amine',
+            username: 'amine',
+            passwordHash: adminHash,
+            role: 'USER',
         }
-    })
+    });
 
-    console.log("Generating sample items...")
-    const today = startOfDay(new Date())
-
-    const items = [
-        // Today: CRITICAL Task
-        {
-            userId: user.id,
-            title: 'Finish API Design Doc',
-            type: 'TASK',
-            priority: 'CRITICAL',
-            date: today,
-        },
-        // Today: IMPORTANT Meeting
-        {
-            userId: user.id,
-            title: 'Product Sync with Design',
-            type: 'MEETING',
-            priority: 'IMPORTANT',
-            date: today,
-            startTime: new Date(today.setHours(14, 0, 0, 0)),
-            endTime: new Date(today.setHours(15, 0, 0, 0)),
-            attendeeName: 'Sarah Jenkins',
-            joinUrl: 'https://zoom.us/j/123456789'
-        },
-        // Today: ROUTINE Event
-        {
-            userId: user.id,
-            title: 'Weekly Team Dinner',
-            type: 'EVENT',
-            priority: 'ROUTINE',
-            date: today,
-            location: 'Downtown Cafe'
-        },
-        // Tomorrow: CRITICAL Deadline
-        {
-            userId: user.id,
-            title: 'Submit Q3 Taxes',
-            type: 'DEADLINE',
-            priority: 'CRITICAL',
-            date: addDays(today, 1),
-        },
-        // Tomorrow: IMPORTANT Assignment
-        {
-            userId: user.id,
-            title: 'Read CS 401 Chapters 3-5',
-            type: 'ASSIGNMENT',
-            priority: 'IMPORTANT',
-            date: addDays(today, 1),
-        },
-        // Two days ago: Completed Task (Hatched style on calendar)
-        {
-            userId: user.id,
-            title: 'Ship the MVP V1',
-            type: 'TASK',
-            priority: 'IMPORTANT',
-            date: subDays(today, 2),
-            completedAt: subDays(today, 2)
-        },
-        // Two days from now: Heavy day (testing +N more chip)
-        {
-            userId: user.id, title: 'Buy Groceries', type: 'TASK', priority: 'ROUTINE', date: addDays(today, 2)
-        },
-        {
-            userId: user.id, title: 'Coffee with David', type: 'EVENT', priority: 'ROUTINE', date: addDays(today, 2)
-        },
-        {
-            userId: user.id, title: 'Physics Problem Set', type: 'ASSIGNMENT', priority: 'ROUTINE', date: addDays(today, 2)
-        },
-        {
-            userId: user.id, title: 'Sign Lease Agreement', type: 'DEADLINE', priority: 'ROUTINE', date: addDays(today, 2)
-        },
-        {
-            userId: user.id, title: 'Project Kickoff Call', type: 'MEETING', priority: 'ROUTINE', date: addDays(today, 2)
+    const sarah = await prisma.user.create({
+        data: {
+            id: 'usr_sarah_123',
+            displayName: 'Sarah',
+            username: 'sarah',
+            passwordHash: sarahHash,
+            role: 'USER',
         }
-    ]
+    });
 
-    for (const item of items) {
-        await prisma.item.create({ data: item })
-    }
+    const bob = await prisma.user.create({
+        data: {
+            id: 'usr_bob_123',
+            displayName: 'Bob',
+            username: 'bob',
+            passwordHash: bobHash,
+            role: 'USER',
+        }
+    });
 
-    console.log('✅ Seed complete!')
+    const admin = await prisma.user.create({
+        data: {
+            id: 'usr_admin_123',
+            displayName: 'Administrator',
+            username: 'admin',
+            passwordHash: adminHash,
+            role: 'ADMIN',
+        }
+    });
+
+    console.log('Seeding items...');
+    const today = startOfDay(new Date());
+
+    // Seeding items for Amine
+    await prisma.item.createMany({
+        data: [
+            { userId: amine.id, title: 'Morning Yoga', type: 'EVENT', priority: 'ROUTINE', date: today, startTime: new Date(today.getTime() + 8 * 3600000) },
+            { userId: amine.id, title: 'Grocery Shopping', type: 'TASK', priority: 'IMPORTANT', date: today },
+            { userId: amine.id, title: 'Physics Research Paper', type: 'DEADLINE', priority: 'CRITICAL', date: addDays(today, 2) },
+        ]
+    });
+
+    // Seeding items for Sarah
+    await prisma.item.createMany({
+        data: [
+            { userId: sarah.id, title: 'Fix Pod Bug 402', type: 'TASK', priority: 'CRITICAL', date: today },
+            { userId: sarah.id, title: 'Sprint 2 Demo Review', type: 'MEETING', priority: 'IMPORTANT', date: today, startTime: new Date(today.getTime() + 14 * 3600000), attendeeName: 'Engineering Team' },
+        ]
+    });
+
+    // Seeding items for Bob
+    await prisma.item.createMany({
+        data: [
+            { userId: bob.id, title: 'Weekly 1:1', type: 'MEETING', priority: 'IMPORTANT', date: today, startTime: new Date(today.getTime() + 10 * 3600000), attendeeName: 'Manager' },
+            { userId: bob.id, title: 'Update Dashboard Styles', type: 'TASK', priority: 'ROUTINE', date: addDays(today, 1) },
+        ]
+    });
+
+    console.log('✓ Seeding complete.');
 }
 
 main()
-    .then(async () => {
-        await prisma.$disconnect()
+    .catch((e) => {
+        console.error(e);
+        process.exit(1);
     })
-    .catch(async (e) => {
-        console.error(e)
-        await prisma.$disconnect()
-        process.exit(1)
-    })
+    .finally(async () => {
+        await prisma.$disconnect();
+    });
