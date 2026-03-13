@@ -53,8 +53,8 @@ export function TodoToday() {
             ) : (
                 <ul className="space-y-2 px-4">
                     {todayItems.map((item: Item) => (
-                        <li key={item.id} onClick={() => setEditingItem(item)} className="cursor-pointer">
-                            <ItemRow item={item} />
+                        <li key={item.id}>
+                            <ItemRow item={item} onEdit={setEditingItem} />
                         </li>
                     ))}
                 </ul>

@@ -23,7 +23,7 @@ const OVERLAY_WIDTH = 70;
 const OVERLAY_OPAQUE = 54;
 
 type CalendarEntry =
-    | { kind: 'month'; label: string }
+    | { kind: 'month'; label: string; isoMonth: string }
     | { kind: 'year'; label: string }
     | { kind: 'day'; date: Date };
 
@@ -88,7 +88,7 @@ export function CalendarStrip() {
                 prevYear = year;
             }
             if (month !== prevMonth) {
-                if (!firstMonth) result.push({ kind: 'month', label: format(day, 'MMMM') });
+                if (!firstMonth) result.push({ kind: 'month', label: format(day, 'MMMM'), isoMonth: format(day, 'yyyy-MM') });
                 firstMonth = false;
                 prevMonth = month;
             }
@@ -216,7 +216,7 @@ export function CalendarStrip() {
                     if (entry.kind === 'month') {
                         return (
                             <div
-                                key={`month-${entry.label}`}
+                                key={`month-${entry.isoMonth}`}
                                 className="flex-none flex items-center justify-center border-l-2"
                                 style={{
                                     width: MARKER_WIDTH,
@@ -236,7 +236,7 @@ export function CalendarStrip() {
 
                     const { date: day } = entry;
                     const isToday = isSameDay(day, today);
-                    const isSelected = isSameDay(day, selectedDate);
+                    const isSelected = selectedDate ? isSameDay(day, selectedDate) : false;
                     const isPast = isBefore(day, today) && !isToday;
                     const dayItems = getSortedItemsForDay(day);
                     const displayItems = dayItems.slice(0, 3);

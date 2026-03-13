@@ -44,8 +44,8 @@ export const useStore = create<StoreState>()(
 
             sessionUser: null,
             token: null,
-            login: (user, token) => set({ sessionUser: user, token, viewedUserId: user.id }),
-            logout: () => set({ sessionUser: null, token: null, viewedUserId: null }),
+            login: (user, token) => set({ sessionUser: user, token, viewedUserId: user.id, isAddSheetOpen: false, editingItem: null }),
+            logout: () => set({ sessionUser: null, token: null, viewedUserId: null, items: [], isAddSheetOpen: false, editingItem: null }),
 
             viewedUserId: null,
             setViewedUserId: (id) => set({ viewedUserId: id }),

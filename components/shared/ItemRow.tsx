@@ -6,7 +6,7 @@ import { Badge } from "../ui/badge";
 import { CATEGORY_COLORS, PRIORITY_COLORS } from "../../lib/constants";
 import { motion } from "framer-motion";
 
-export function ItemRow({ item }: { item: any }) {
+export function ItemRow({ item, onEdit }: { item: any; onEdit?: (item: any) => void }) {
     const token = useStore((state) => state.token);
     const updateItem = useStore((state) => state.updateItem);
 
@@ -63,19 +63,33 @@ export function ItemRow({ item }: { item: any }) {
 
             <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-0.5">
-                    <span 
-                        className={`text-sm font-geist truncate ${isCompleted ? 'line-through opacity-50' : 'text-primary'}`}
+                    <span
+                        className={`text-sm font-geist truncate flex-1 ${isCompleted ? 'line-through opacity-50' : ''}`}
                         style={{ color: isCompleted ? 'var(--text-muted)' : 'var(--text-primary)' }}
                     >
                         {item.title}
                     </span>
-                    <Badge 
-                        variant="outline" 
-                        className="text-[9px] uppercase tracking-wider py-0 h-4 border-opacity-50"
+                    <Badge
+                        variant="outline"
+                        className="text-[9px] uppercase tracking-wider py-0 h-4 border-opacity-50 flex-none"
                         style={{ borderColor: priorityColor, color: priorityColor }}
                     >
                         {item.priority}
                     </Badge>
+                    {onEdit && (
+                        <button
+                            type="button"
+                            onClick={(e) => { e.stopPropagation(); onEdit(item); }}
+                            aria-label={`Edit ${item.title}`}
+                            className="flex-none p-1 rounded opacity-60 hover:opacity-100 transition-opacity"
+                            style={{ color: 'var(--text-muted)' }}
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                            </svg>
+                        </button>
+                    )}
                 </div>
 
                 {/* Secondary metadata */}

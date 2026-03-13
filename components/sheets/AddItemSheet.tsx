@@ -25,6 +25,15 @@ const PRIORITIES: { value: Priority; label: string }[] = [
     { value: 'CRITICAL', label: 'Critical' },
 ];
 
+type Recurrence = 'NONE' | 'DAILY' | 'WEEKLY' | 'MONTHLY';
+
+const RECURRENCES: { value: Recurrence; label: string }[] = [
+    { value: 'NONE', label: 'None' },
+    { value: 'DAILY', label: 'Daily' },
+    { value: 'WEEKLY', label: 'Weekly' },
+    { value: 'MONTHLY', label: 'Monthly' },
+];
+
 const inputStyle: React.CSSProperties = {
     backgroundColor: 'var(--bg-surface)',
     color: 'var(--text-primary)',
@@ -58,6 +67,7 @@ export function AddItemSheet() {
     const [joinUrl, setJoinUrl] = useState('');
     const [attendeeName, setAttendeeName] = useState('');
     const [notes, setNotes] = useState('');
+    const [showNotes, setShowNotes] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -66,6 +76,7 @@ export function AddItemSheet() {
     const showTimeFields = type === 'EVENT' || type === 'MEETING';
     const showLocationField = type === 'EVENT' || type === 'MEETING';
     const showJoinUrlField = type === 'MEETING';
+    const showAttendeeField = type === 'MEETING';
 
     const close = () => {
         setIsAddOpen(false);
@@ -126,6 +137,7 @@ export function AddItemSheet() {
         }
         if (showLocationField && location.trim()) payload.location = location.trim();
         if (showJoinUrlField && joinUrl.trim()) payload.joinUrl = joinUrl.trim();
+        if (showAttendeeField && attendeeName.trim()) payload.attendeeName = attendeeName.trim();
         if (recurrence !== 'NONE' && recurrenceEndDate) {
             payload.recurrenceEndDate = new Date(recurrenceEndDate + 'T00:00:00').toISOString();
         }
@@ -336,6 +348,19 @@ export function AddItemSheet() {
                             </div>
                         )}
 
+                        {showAttendeeField && (
+                            <div>
+                                <Label className="text-[10px] uppercase font-mono mb-2 block" style={{ color: 'var(--text-muted)' }}>Attendee</Label>
+                                <Input
+                                    value={attendeeName}
+                                    onChange={(e) => setAttendeeName(e.target.value)}
+                                    placeholder="Name"
+                                    style={inputStyle}
+                                    className="font-mono text-xs"
+                                />
+                            </div>
+                        )}
+
                         <div>
                             <p className="text-[10px] uppercase tracking-wider mb-2 font-mono" style={{ color: 'var(--text-muted)' }}>Priority</p>
                             <div className="flex gap-2">
@@ -354,6 +379,56 @@ export function AddItemSheet() {
                                     </button>
                                 ))}
                             </div>
+                        </div>
+                        <div>
+                            <Label className="text-[10px] uppercase font-mono mb-2 block" style={{ color: 'var(--text-muted)' }}>Repeat</Label>
+                            <select
+                                value={recurrence}
+                                onChange={(e) => setRecurrence(e.target.value as Recurrence)}
+                                className="w-full px-3 py-2 rounded-lg text-xs font-mono outline-none appearance-none"
+                                style={{ ...inputStyle, colorScheme: 'dark' }}
+                            >
+                                {RECURRENCES.map(({ value, label }) => (
+                                    <option key={value} value={value}>{label}</option>
+                                ))}
+                            </select>
+                        </div>
+
+                        {recurrence !== 'NONE' && (
+                            <div>
+                                <Label className="text-[10px] uppercase font-mono mb-2 block" style={{ color: 'var(--text-muted)' }}>Repeat Until (optional)</Label>
+                                <Input
+                                    type="date"
+                                    value={recurrenceEndDate}
+                                    onChange={(e) => setRecurrenceEndDate(e.target.value)}
+                                    style={{ ...inputStyle, colorScheme: 'dark' }}
+                                    className="font-mono text-xs"
+                                />
+                            </div>
+                        )}
+
+                        <div>
+                            <button
+                                type="button"
+                                onClick={() => setShowNotes(!showNotes)}
+                                aria-expanded={showNotes}
+                                className="flex items-center gap-1.5 text-xs font-mono"
+                                style={{ color: 'var(--text-muted)' }}
+                            >
+                                <span aria-hidden="true">{showNotes ? '▾' : '▸'}</span>
+                                <span>Notes (optional)</span>
+                            </button>
+                            {showNotes && (
+                                <textarea
+                                    aria-label="Notes"
+                                    value={notes}
+                                    onChange={(e) => setNotes(e.target.value)}
+                                    placeholder="Any additional details..."
+                                    rows={3}
+                                    className="w-full mt-2 px-3 py-2 rounded-lg text-xs font-mono outline-none resize-none"
+                                    style={inputStyle}
+                                />
+                            )}
                         </div>
                     </div>
 
