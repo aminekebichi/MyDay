@@ -25,8 +25,6 @@ const PRIORITIES: { value: Priority; label: string }[] = [
     { value: 'CRITICAL', label: 'Critical' },
 ];
 
-type Recurrence = 'NONE' | 'DAILY' | 'WEEKLY' | 'MONTHLY';
-
 const RECURRENCES: { value: Recurrence; label: string }[] = [
     { value: 'NONE', label: 'None' },
     { value: 'DAILY', label: 'Daily' },

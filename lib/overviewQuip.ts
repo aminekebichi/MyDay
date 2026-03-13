@@ -97,10 +97,11 @@ export function generateWeekOverview(items: Item[]): string {
 
 // Generates a funny closing quip based on the week's items.
 export function generateClosingQuip(items: Item[]): string {
-    const critical = items.filter((i) => i.priority === 'CRITICAL');
-    const meetings = items.filter((i) => i.type === 'MEETING');
-    const deadlines = items.filter((i) => i.type === 'DEADLINE');
-    const total = items.length;
+    const incomplete = items.filter((i) => !i.completedAt);
+    const critical = incomplete.filter((i) => i.priority === 'CRITICAL');
+    const meetings = incomplete.filter((i) => i.type === 'MEETING');
+    const deadlines = incomplete.filter((i) => i.type === 'DEADLINE');
+    const total = incomplete.length;
 
     if (total === 0) return "Blissfully quiet. Suspicious, but blissful.";
     if (critical.length >= 3) return "Three critical items in one week? You either love pressure or forgot to plan. Probably both.";

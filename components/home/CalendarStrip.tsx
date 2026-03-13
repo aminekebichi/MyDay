@@ -62,7 +62,7 @@ export function CalendarStrip() {
     // Pre-index items by date string for O(1) lookup across 730 rendered days
     const itemsByDate = useMemo(() => {
         const map = new Map<string, Item[]>();
-        items.forEach((item: Item) => {
+        items.filter((item: Item) => !item.completedAt).forEach((item: Item) => {
             const key = format(startOfDay(new Date(item.date)), 'yyyy-MM-dd');
             if (!map.has(key)) map.set(key, []);
             map.get(key)!.push(item);

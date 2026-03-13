@@ -2,9 +2,29 @@
 
 import { useStore } from "../../lib/store";
 import { Checkbox } from "../ui/checkbox";
-import { Badge } from "../ui/badge";
 import { CATEGORY_COLORS, PRIORITY_COLORS } from "../../lib/constants";
 import { motion } from "framer-motion";
+
+const PRIORITY_BARS: Record<string, number> = { ROUTINE: 1, IMPORTANT: 2, CRITICAL: 3 };
+
+function PriorityBars({ priority, color }: { priority: string; color: string }) {
+    const count = PRIORITY_BARS[priority] ?? 1;
+    return (
+        <div className="flex-none self-center flex flex-col justify-center gap-[3px]">
+            {[0, 1, 2].map((i) => (
+                <div
+                    key={i}
+                    className="rounded-full"
+                    style={{
+                        width: 14,
+                        height: 3,
+                        backgroundColor: i < count ? color : 'var(--border)',
+                    }}
+                />
+            ))}
+        </div>
+    );
+}
 
 export function ItemRow({ item, onEdit }: { item: any; onEdit?: (item: any) => void }) {
     const token = useStore((state) => state.token);
@@ -52,11 +72,11 @@ export function ItemRow({ item, onEdit }: { item: any; onEdit?: (item: any) => v
                 backgroundColor: 'var(--bg-surface)'
             }}
         >
-            <div className="flex-none pt-0.5">
+            <div className="flex-none self-center">
                 <Checkbox
                     checked={isCompleted}
                     onCheckedChange={handleToggle}
-                    className="h-5 w-5 rounded-sm border-2"
+                    className="h-[22px] w-[22px] rounded-sm border-2"
                     style={{ borderColor: categoryColor }}
                 />
             </div>
@@ -69,27 +89,6 @@ export function ItemRow({ item, onEdit }: { item: any; onEdit?: (item: any) => v
                     >
                         {item.title}
                     </span>
-                    <Badge
-                        variant="outline"
-                        className="text-[9px] uppercase tracking-wider py-0 h-4 border-opacity-50 flex-none"
-                        style={{ borderColor: priorityColor, color: priorityColor }}
-                    >
-                        {item.priority}
-                    </Badge>
-                    {onEdit && (
-                        <button
-                            type="button"
-                            onClick={(e) => { e.stopPropagation(); onEdit(item); }}
-                            aria-label={`Edit ${item.title}`}
-                            className="flex-none p-1 rounded opacity-60 hover:opacity-100 transition-opacity"
-                            style={{ color: 'var(--text-muted)' }}
-                        >
-                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                            </svg>
-                        </button>
-                    )}
                 </div>
 
                 {/* Secondary metadata */}
@@ -116,6 +115,23 @@ export function ItemRow({ item, onEdit }: { item: any; onEdit?: (item: any) => v
                     </div>
                 )}
             </div>
+
+            <PriorityBars priority={item.priority} color={priorityColor} />
+
+            {onEdit && (
+                <button
+                    type="button"
+                    onClick={(e) => { e.stopPropagation(); onEdit(item); }}
+                    aria-label={`Edit ${item.title}`}
+                    className="flex-none self-center p-1 rounded opacity-60 hover:opacity-100 transition-opacity"
+                    style={{ color: 'var(--text-muted)' }}
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                    </svg>
+                </button>
+            )}
         </motion.div>
     );
 }
