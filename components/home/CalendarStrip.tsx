@@ -2,8 +2,7 @@
 
 import React, { useMemo, useRef, useState, useEffect } from 'react';
 import { useStore } from '../../lib/store';
-import { useWeekItems } from '../../hooks/useWeekItems';
-import { startOfWeek, format, isSameDay, isBefore, startOfDay, addDays, getMonth, getYear } from 'date-fns';
+import { format, isSameDay, isBefore, startOfDay, addDays, getMonth, getYear } from 'date-fns';
 import { CATEGORY_COLORS, PRIORITY_ORDER } from '../../lib/constants';
 import { cn } from '../../lib/utils';
 import { geistMono } from '../../lib/fonts';
@@ -29,14 +28,11 @@ type CalendarEntry =
 
 export function CalendarStrip() {
     const today = startOfDay(new Date());
-    const weekStart = startOfWeek(today, { weekStartsOn: 1 });
     const navRef = useRef<HTMLElement>(null);
     const [cardWidth, setCardWidth] = useState(100);
     const [isScrolled, setIsScrolled] = useState(false);
     const [activeMonth, setActiveMonth] = useState(() => format(today, 'MMMM'));
     const [activeYear, setActiveYear] = useState(() => format(today, 'yyyy'));
-
-    useWeekItems(weekStart);
 
     const items = useStore((state: any) => state.items);
     const selectedDate = useStore((state: any) => state.selectedDate);

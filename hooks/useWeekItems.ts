@@ -14,7 +14,7 @@ export function useWeekItems(startDate: Date) {
     }).then(r => r.json());
 
     // Build URL with optional userId or global flag
-    let url = `/api/items/week?start=${startDate.toISOString()}&days=7`;
+    let url = `/api/items/week?start=${startDate.toISOString()}&days=14`;
     if (viewedUserId === 'all') {
         url += `&global=true`;
     } else if (viewedUserId) {

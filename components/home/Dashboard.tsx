@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { startOfWeek, startOfDay } from "date-fns";
 import { useStore } from "../../lib/store";
 import { CalendarStrip } from "./CalendarStrip";
 import { TodoToday } from "./TodoToday";
@@ -21,8 +22,9 @@ export function Dashboard() {
     const [users, setUsers] = useState<any[]>([]);
     const [showUserMenu, setShowUserMenu] = useState(false);
 
-    // Fetch weekly items to populate the store
-    useWeekItems(new Date());
+    // Fetch items for the current + next week (single source of truth for the store)
+    const weekStart = startOfWeek(startOfDay(new Date()), { weekStartsOn: 1 });
+    useWeekItems(weekStart);
 
     useEffect(() => {
         if (sessionUser?.role === 'ADMIN' && token) {

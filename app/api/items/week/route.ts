@@ -24,8 +24,10 @@ export async function GET(req: NextRequest) {
         }
     }
 
+    const daysParam = searchParams.get("days");
+    const days = daysParam ? Math.max(1, parseInt(daysParam, 10)) : 14;
     const startDate = startStr ? new Date(startStr) : new Date();
-    const endDate = addDays(startDate, 7);
+    const endDate = addDays(startDate, days);
 
     try {
         const items = await prisma.item.findMany({

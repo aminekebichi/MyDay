@@ -16,7 +16,9 @@
       "Bash(cd \"C:\\\\Users\\\\amine\\\\OneDrive\\\\Documents\\\\git_workspace\\\\MyDay\" && npm run test:coverage 2>&1 | tail -60)",
       "Bash(cd \"C:\\\\Users\\\\amine\\\\OneDrive\\\\Documents\\\\git_workspace\\\\MyDay\" && npm run test:coverage 2>&1 | grep -E \"\\(ERROR|Test Files|Tests |✓|❯|×\\)\" | head -30)",
       "Bash(cd \"C:\\\\Users\\\\amine\\\\OneDrive\\\\Documents\\\\git_workspace\\\\MyDay\" && npm run test:coverage 2>&1 | grep -E \"\\(ERROR|Test Files|Tests \\)\" | tail -10)",
-      "Bash(cd \"C:\\\\Users\\\\amine\\\\OneDrive\\\\Documents\\\\git_workspace\\\\MyDay\" && npm run test:coverage 2>&1 | grep -E \"\\(ERROR|lines|functions|branches|statements|All files\\)\" | tail -20)"
+      "Bash(cd \"C:\\\\Users\\\\amine\\\\OneDrive\\\\Documents\\\\git_workspace\\\\MyDay\" && npm run test:coverage 2>&1 | grep -E \"\\(ERROR|lines|functions|branches|statements|All files\\)\" | tail -20)",
+      "Bash(cd \"C:\\\\Users\\\\amine\\\\OneDrive\\\\Documents\\\\git_workspace\\\\MyDay\" && node -e \"const { PrismaClient } = require\\('@prisma/client'\\); const prisma = new PrismaClient\\(\\); prisma.user.findMany\\({ select: { id: true, displayName: true, username: true } }\\).then\\(u => { console.log\\(JSON.stringify\\(u, null, 2\\)\\); prisma.\\\\$disconnect\\(\\); }\\);\")",
+      "Bash(cd \"C:/Users/amine/OneDrive/Documents/git_workspace/MyDay\" && gh issue list --limit 50 --state all 2>&1)"
     ]
   }
 }
