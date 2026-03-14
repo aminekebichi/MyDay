@@ -94,7 +94,9 @@ Every interaction — adding a task, marking something complete, or logging a ne
 ---
 Demo Youtube Link: https://www.youtube.com/watch?v=_T5EbpoYrGs&feature=youtu.be
 ---
-Blog Post: Building MyDay: Vibe-Coding a Live Calendar Dashboard
+Blog Post: 
+
+MyDay: Your Live Calendar Dashboard
 The Problem: Too Many Places to Look
 
 Modern productivity tools are supposed to make life easier, but a lot of the time they end up doing the opposite. Tasks live in one app, calendar events live somewhere else, reminders show up through notifications, and notes get scattered across different systems. When you actually try to figure out what you need to do today, you often end up jumping between multiple tools just to piece together the full picture.
